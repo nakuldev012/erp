@@ -9,3 +9,6 @@ docker-compose.yml
 
 # Migrations File
 *migrations/
+
+# Compiled Python bytecode
+*.py[cod]

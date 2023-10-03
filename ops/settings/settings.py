@@ -96,6 +96,11 @@ AUTH_USER_MODEL = "user.Account"
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
 
+host = env("DATABASE_HOST")
+password = env("PASSWORD")
+user = env("USER")
+name = env("NAME")
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -170,8 +175,8 @@ EMAIL_USE_TLS = True
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_HOST_USER = "testerp053@gmail.com"
 MAIL_SENDING_USER = "ERP 3.0 <testerp053@gmail.com>"
-EMAIL_HOST_PASSWORD = env("GMAIL_PASSWORD")
-# EMAIL_HOST_PASSWORD = "lrdo afqo wbby kfog"
+# EMAIL_HOST_PASSWORD = env("GMAIL_PASSWORD")
+EMAIL_HOST_PASSWORD = "lrdo afqo wbby kfog"
 EMAIL_PORT = 587
 
 MEDIA_ROOT = os.path.join( "media")
