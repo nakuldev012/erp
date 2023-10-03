@@ -1,0 +1,11 @@
+#Media file
+media/
+
+#Docker file
+docker-compose.yml
+
+# Environment File
+.env
+
+# Migrations File
+*migrations/
