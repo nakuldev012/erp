@@ -12,3 +12,8 @@ docker-compose.yml
 
 # Compiled Python bytecode
 *.py[cod]
+
+
+# ssh key files
+exit
+exit.pub
