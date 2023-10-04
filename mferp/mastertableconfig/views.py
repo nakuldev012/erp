@@ -183,19 +183,89 @@ class OrganizationView(
 
     def post(self, request):
         try:
-            data = request.data
-            serializer = OrganizationSerializer(data=data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(
-                    {"data": serializer.data, "success": True},
-                    status=status.HTTP_201_CREATED,
-                )
-
+            data = request.data     
+            if ("child_count" ) not in request.data:
+                raise ClientErrors(message="All fields are required", response_code=400)
+            child_count = int(request.data.get("child_count"))
+            for assign in range(0, child_count+1):
+                if ("org_type_" + str(assign)) not in request.data:
+                    raise ClientErrors("All field required")
+                if ("ownership_status_" + str(assign)) not in request.data:
+                    raise ClientErrors("All field required")
+                if ("org_nature_" + str(assign)) not in request.data:
+                    raise ClientErrors("All field required")
+                if ("region_" + str(assign)) not in request.data:
+                    raise ClientErrors("All field required")
+                if ("affiliated_university_" + str(assign)) not in request.data:
+                    raise ClientErrors("All field required")
+                if ("establishment_date_" + str(assign)) not in request.data:
+                    raise ClientErrors("All field required")
+                if ("address_" + str(assign)) not in request.data:
+                    raise ClientErrors("All field required")
+                if ("state_" + str(assign)) not in request.data:
+                    raise ClientErrors("All field required")
+                if ("district_" + str(assign)) not in request.data:
+                    raise ClientErrors("All field required")
+                if ("pin_code_" + str(assign)) not in request.data:
+                    raise ClientErrors("All field required")
+                if ("email_" + str(assign)) not in request.data:
+                    raise ClientErrors("All field required")
+                if ("phone_number_" + str(assign)) not in request.data:
+                    raise ClientErrors("All field required")
+            for assign in range(0, child_count+1):
+                org_type = data.get("org_type_" + str(assign))
+                org_name = data.get("org_name_" + str(assign))
+                ownership_status = data.get("ownership_status_" + str(assign))
+                org_nature = data.get("org_nature_" + str(assign))
+                region = data.get("region_" + str(assign))
+                affiliated_university = data.get("affiliated_university_" + str(assign))
+                establishment_date = data.get("establishment_date_" + str(assign))
+                org_short_code = data.get("org_short_code_" + str(assign), None)
+                org_logo = data.get("org_logo_" + str(assign), None)
+                org_cover_banner = data.get("org_cover_banner_" + str(assign), None)
+                org_photo = data.get("org_photo_" + str(assign), None)
+                address = data.get("address_" + str(assign))
+                city = data.get("city_" + str(assign), None)
+                landmark = data.get("landmark_" + str(assign), None)
+                pin_code = data.get("pin_code_" + str(assign))
+                web_address = data.get("web_address_" + str(assign), None)
+                email = data.get("email_" + str(assign))
+                contact_number = data.get("contact_number_" + str(assign), None)
+                phone_number = data.get("phone_number_" + str(assign))
+                state = data.get("state_" + str(assign))
+        
+               
+                instance_org_type = MasterConfig.objects.get(pk=org_type)
+                ownership_master = MasterConfig.objects.get(pk=ownership_status)
+                instance_nature = MasterConfig.objects.get(pk=org_nature)
+                instance_region = MasterConfig.objects.get(pk=region)
+                instance_affiliated = MasterConfig.objects.get(pk=affiliated_university)
+                   
+                if assign == 0:
+                    obj = Organization.objects.create(type_of_organization=instance_org_type, org_name=org_name, ownership_status=ownership_master, 
+                                                nature_of_organization=instance_nature, region=instance_region, affiliated_university=instance_affiliated,
+                                                establishment_date=establishment_date, short_code=org_short_code, logo_org=org_logo, cover_banner_org=org_cover_banner, 
+                                                photo_org=org_photo,
+                                                address=address, city=city,landmark=landmark, 
+                                                pin_code=pin_code, web_address=web_address, email=email,
+                                                contact_number=contact_number, phone_number=phone_number, state=state)
+                    
+                else:
+                    Organization.objects.create(type_of_organization=instance_org_type, ownership_status=ownership_master, 
+                                                nature_of_organization=instance_nature, region=instance_region, affiliated_university=instance_affiliated,
+                                                establishment_date=establishment_date, short_code=org_short_code, logo_org=org_logo, cover_banner_org=org_cover_banner, 
+                                                photo_org=org_photo,
+                                                address=address, city=city,landmark=landmark, 
+                                                pin_code=pin_code, web_address=web_address, email=email,
+                                                contact_number=contact_number, phone_number=phone_number, state=state, parent=obj)
             return Response(
-                {"data": serializer.errors, "success": False},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            {
+                "message": "Organisation Successfully Created",
+                "success": True,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+           
         except UserErrors as error:
             return Response(
                 {"message": error.message, "success": False}, status=error.response_code

@@ -1,5 +1,6 @@
 import base64
 import csv
+import os 
 from rest_framework.parsers import FileUploadParser
 from django.http import HttpRequest, HttpResponseRedirect
 from django.db.models import Q
@@ -22,8 +23,9 @@ from .serializers import (
     UserLoginSerializer,
     SignUpSerializer,
     ResetPasswordEmailSerializer,
-    BulkSignUpSerializer
+    BulkSignUpSerializer,CsvFileSerializer
 )
+from django.http import FileResponse
 from oauth2_provider.models import AccessToken, RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from mferp.common.emailer import email_verify, forget_password,login_credentials
@@ -91,7 +93,7 @@ class BulkUserSignUpView(APIView):
             if not csv_file:
                 return Response({'error': 'CSV file not provided'}, status=status.HTTP_400_BAD_REQUEST)
             csv_data = csv.reader(csv_file.read().decode('utf-8').splitlines())
-            responses = []
+            # responses = []
             for row in csv_data:
                 if len(row)==5 and row[0]!="email":
                     try:
@@ -115,30 +117,23 @@ class BulkUserSignUpView(APIView):
                         user_token = get_access_token(user=user)
                         token = user_token["access_token"]
                         enc_token = encode_token(token)
-                        link = BASE_URL + "/v1/verify-account" + "?q=" + enc_token
+                        # link = BASE_URL + "/v1/verify-account" + "?q=" + enc_token
                         email = user.email
                         # password = user.password
                         user.is_verified = True
                         password=generate_password()
                         user.set_password(password)
                         user.save()
-                        # try:
-                        #     email_verify(f"Account Verification Email - ERP 3.0  ", email, link)
-                        #     user_data={}
-                        # except:
-                        #     UserErrors(message="Please check your Email ID.", response_code=500)
                         try:
                             login_credentials(f"you are successfully registered with us. please login with your registered email id and password given here!!",email, password)
                         except:
                             UserErrors(message="Please check your Email ID.", response_code=500)
-                    responses.append(
-                    {
-                        "message": "Account Created Successfully",
-                        "success": True,
-                        "token": enc_token,
-                    }
-                )
-            return Response(responses, status=status.HTTP_201_CREATED)
+            return Response ( 
+                {
+                    "message": "Account Created Successfully",
+                    "success": True,
+                    # "token": enc_token,
+                })
         
         except UserErrors as error:
             return Response(
@@ -429,3 +424,38 @@ class ChangePasswordView(APIView):
             return Response(
                 {"message": error.message, "success": False}, status=error.response_code
             )
+
+# for csv_file
+class CsvFileView(APIView):
+    # permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+            csv_file_path = csv_file_path = os.path.join(settings.MEDIA_ROOT, 'bulkregistrationtemplate.csv')
+            data = {'path': csv_file_path}
+            serializer = CsvFileSerializer(data=data)
+            if serializer.is_valid():
+                return Response(serializer.validated_data)
+            else:
+                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# class CsvFileView(APIView):
+#     def get(self, request):
+#         # Get the filename from the query parameter 'filename'
+#         filename = request.query_params.get('filename')
+        
+#         if not filename:
+#             return Response({'error': 'Query parameter "filename" is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+#         csv_file_path = os.path.join(settings.MEDIA_ROOT, filename)
+
+#         if os.path.exists(csv_file_path):
+#             data = {'path': csv_file_path}
+#             serializer = CsvFileSerializer(data=data)
+#             if serializer.is_valid():
+#                 return Response(serializer.validated_data)
+#             else:
+#                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#         else:
+#             return Response({'error': 'File not found'}, status=status.HTTP_404_NOT_FOUND)
+        
