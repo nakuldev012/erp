@@ -55,7 +55,7 @@ class UserSignUpView(APIView):
             user_token = get_access_token(user=user)
             token = user_token["access_token"]
             enc_token = encode_token(token)
-            link = BASE_URL + "/v1/verify-account" + "?q=" + enc_token
+            link = BASE_URL + "/user/v1/verify-account" + "?q=" + enc_token
             email = request.data["email"]
             password=user.password
             try:
@@ -237,16 +237,13 @@ class VerifyAccountView(APIView):
             else:
                 
                 user.is_verified = True
-                # user.save()
                 password=generate_password()
                 user.set_password(password)
                 user.save()
                 email=user.email
-                # link="link"
                 try:
                    
                     login_credentials(f"your account is verified. please login with your registered email id and password given here!!",email, password)
-                # email_verify("Account Verification Email - ERP 3.0\n {password}", email, link)
                 except:
                     UserErrors(message="Please check your Email ID.", response_code=500)
                 return Response(
@@ -282,7 +279,7 @@ class ForgetPasswordEmailView( APIView):
             token = get_access_token(user)
             token = token["access_token"]
             enc_token = encode_token(token)
-            link = BASE_URL + "/v1/forget-password-verify/?q=" + str(enc_token)
+            link = BASE_URL + "/user/v1/forget-password-verify/?q=" + str(enc_token)
             email = request.data["email"]
             forget_password("password reset ", email, link)
             return Response(

@@ -7,6 +7,7 @@ from rest_framework import generics, mixins
 from mferp.common.errors import ClientErrors, DatabaseErrors, UserErrors
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
+from mferp.common.functions import get_date_datetime, get_string_datetime
 
 
 class CreateCategoryOrSubcategoryView(
@@ -183,11 +184,11 @@ class OrganizationView(
 
     def post(self, request):
         try:
-            data = request.data     
-            if ("child_count" ) not in request.data:
+            data = request.data
+            if ("child_count") not in request.data:
                 raise ClientErrors(message="All fields are required", response_code=400)
             child_count = int(request.data.get("child_count"))
-            for assign in range(0, child_count+1):
+            for assign in range(0, child_count + 1):
                 if ("org_type_" + str(assign)) not in request.data:
                     raise ClientErrors("All field required")
                 if ("ownership_status_" + str(assign)) not in request.data:
@@ -212,14 +213,16 @@ class OrganizationView(
                     raise ClientErrors("All field required")
                 if ("phone_number_" + str(assign)) not in request.data:
                     raise ClientErrors("All field required")
-            for assign in range(0, child_count+1):
+            for assign in range(0, child_count + 1):
                 org_type = data.get("org_type_" + str(assign))
                 org_name = data.get("org_name_" + str(assign))
                 ownership_status = data.get("ownership_status_" + str(assign))
                 org_nature = data.get("org_nature_" + str(assign))
                 region = data.get("region_" + str(assign))
                 affiliated_university = data.get("affiliated_university_" + str(assign))
-                establishment_date = data.get("establishment_date_" + str(assign))
+                establishment_date = get_date_datetime(
+                    data.get("establishment_date_" + str(assign))
+                )
                 org_short_code = data.get("org_short_code_" + str(assign), None)
                 org_logo = data.get("org_logo_" + str(assign), None)
                 org_cover_banner = data.get("org_cover_banner_" + str(assign), None)
@@ -233,39 +236,68 @@ class OrganizationView(
                 contact_number = data.get("contact_number_" + str(assign), None)
                 phone_number = data.get("phone_number_" + str(assign))
                 state = data.get("state_" + str(assign))
-        
-               
+
                 instance_org_type = MasterConfig.objects.get(pk=org_type)
                 ownership_master = MasterConfig.objects.get(pk=ownership_status)
                 instance_nature = MasterConfig.objects.get(pk=org_nature)
                 instance_region = MasterConfig.objects.get(pk=region)
                 instance_affiliated = MasterConfig.objects.get(pk=affiliated_university)
-                   
+
                 if assign == 0:
-                    obj = Organization.objects.create(type_of_organization=instance_org_type, org_name=org_name, ownership_status=ownership_master, 
-                                                nature_of_organization=instance_nature, region=instance_region, affiliated_university=instance_affiliated,
-                                                establishment_date=establishment_date, short_code=org_short_code, logo_org=org_logo, cover_banner_org=org_cover_banner, 
-                                                photo_org=org_photo,
-                                                address=address, city=city,landmark=landmark, 
-                                                pin_code=pin_code, web_address=web_address, email=email,
-                                                contact_number=contact_number, phone_number=phone_number, state=state)
-                    
+                    obj = Organization.objects.create(
+                        type_of_organization=instance_org_type,
+                        org_name=org_name,
+                        ownership_status=ownership_master,
+                        nature_of_organization=instance_nature,
+                        region=instance_region,
+                        affiliated_university=instance_affiliated,
+                        establishment_date=establishment_date,
+                        short_code=org_short_code,
+                        logo_org=org_logo,
+                        cover_banner_org=org_cover_banner,
+                        photo_org=org_photo,
+                        address=address,
+                        city=city,
+                        landmark=landmark,
+                        pin_code=pin_code,
+                        web_address=web_address,
+                        email=email,
+                        contact_number=contact_number,
+                        phone_number=phone_number,
+                        state=state,
+                    )
+
                 else:
-                    Organization.objects.create(type_of_organization=instance_org_type, ownership_status=ownership_master, 
-                                                nature_of_organization=instance_nature, region=instance_region, affiliated_university=instance_affiliated,
-                                                establishment_date=establishment_date, short_code=org_short_code, logo_org=org_logo, cover_banner_org=org_cover_banner, 
-                                                photo_org=org_photo,
-                                                address=address, city=city,landmark=landmark, 
-                                                pin_code=pin_code, web_address=web_address, email=email,
-                                                contact_number=contact_number, phone_number=phone_number, state=state, parent=obj)
+                    Organization.objects.create(
+                        type_of_organization=instance_org_type,
+                        ownership_status=ownership_master,
+                        nature_of_organization=instance_nature,
+                        region=instance_region,
+                        affiliated_university=instance_affiliated,
+                        establishment_date=establishment_date,
+                        short_code=org_short_code,
+                        logo_org=org_logo,
+                        cover_banner_org=org_cover_banner,
+                        photo_org=org_photo,
+                        address=address,
+                        city=city,
+                        landmark=landmark,
+                        pin_code=pin_code,
+                        web_address=web_address,
+                        email=email,
+                        contact_number=contact_number,
+                        phone_number=phone_number,
+                        state=state,
+                        parent=obj,
+                    )
             return Response(
-            {
-                "message": "Organisation Successfully Created",
-                "success": True,
-            },
-            status=status.HTTP_201_CREATED,
-        )
-           
+                {
+                    "message": "Organisation Successfully Created",
+                    "success": True,
+                },
+                status=status.HTTP_201_CREATED,
+            )
+
         except UserErrors as error:
             return Response(
                 {"message": error.message, "success": False}, status=error.response_code
@@ -275,8 +307,3 @@ class OrganizationView(
                 {"message": "Something Went Wrong", "success": False},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
-
-
-
-

@@ -31,3 +31,15 @@ class DatabaseErrors(UserErrors):
         self.error_message = error_message if error_message else ""
         self.response_code = response_code if response_code else 503
         self.type = "Database Errors"
+
+
+class ServerErrors(UserErrors):
+    """
+    When error occured because of server error
+    """
+
+    def __init__(self, message=None, error_message=None, response_code=None):
+        self.message = message if message else "Internal Server Error"
+        self.error_message = error_message if error_message else ""
+        self.response_code = response_code if response_code else 500
+        self.type = "Server Errors"
