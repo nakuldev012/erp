@@ -12,8 +12,6 @@ django.setup()
 from django.conf import settings
 
 from mferp.address.models import City, Country, State
-import ipdb;
-ipdb.set_trace()
 with open("erp_backend/countries-states-cities.json", "r") as handle:
     data = json.load(handle)
 
