@@ -16,9 +16,8 @@ class EmployeelistView( generics.GenericAPIView,   mixins.ListModelMixin, ):
     queryset = Employee.objects.all()
 
     # group_required('hr_configuration')
-    @group_required('hr_configuration')
+    # @group_required('hr_configuration')
     def get(self, request, *args, **kwargs):
-        print(request.user)
         if not 'pk' in kwargs:
             return self.list(request)
         post = get_object_or_404(Employee, pk=kwargs['pk'])

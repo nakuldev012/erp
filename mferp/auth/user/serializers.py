@@ -1,10 +1,11 @@
 import base64
-from django.forms import ValidationError
+
+# from django.forms import ValidationError
 import requests
 from mferp.auth.user.tokens import decode_token, get_access_token
 from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
-from mferp.common.errors import ClientErrors
+from mferp.common.errors import ClientErrors, CustomValidationErrorMixin
 from .models import MasterConfig, Account
 from django.db.models import Q
 from rest_framework.response import Response
@@ -15,14 +16,13 @@ from rest_framework import status
 from mferp.common.functions import check_password, generate_password
 
 
-
-class UserLoginSerializer(serializers.Serializer):
+class UserLoginSerializer(CustomValidationErrorMixin, serializers.Serializer):
     """
     Return authenticated user email
     data:
         email and password
     """
-    
+
     email = serializers.EmailField(required=True)
     password = serializers.CharField(required=True)
 
@@ -39,49 +39,42 @@ class UserLoginSerializer(serializers.Serializer):
                 if user.is_active:
                     data["user"] = user
                 else:
-                    raise ClientErrors(
-                            message="Account deactivate", response_code=401
-                        )
+                    raise ClientErrors(message="Account deactivate", response_code=401)
             else:
-                raise ClientErrors(
-                                message="Incorrect Password", response_code=401
-                            )
+                raise ClientErrors(message="Incorrect Password", response_code=401)
         return data
 
 
-class SignUpSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=False) 
+class SignUpSerializer(CustomValidationErrorMixin, serializers.ModelSerializer):
+    password = serializers.CharField(write_only=True, required=False)
+
     class Meta:
         model = Account
         fields = "__all__"
-    
-    # password=generate_password()
 
     def create(self, validated_data):
-        password=generate_password()
+        password = generate_password()
         user = Account.objects.create(**validated_data)
         # user.set_password(validated_data["password"])
         user.set_password(password)
         user.save()
         return user
 
+
 # for bulk user's registration via csv file
-
-
-class BulkSignUpSerializer(serializers.Serializer):
-    
+class BulkSignUpSerializer(CustomValidationErrorMixin, serializers.Serializer):
     email = serializers.EmailField()
     user_type = serializers.IntegerField()
     first_name = serializers.CharField(max_length=250)
     last_name = serializers.CharField(max_length=250)
     phone_number = serializers.CharField(max_length=17, required=False)
-    
+
     class Meta:
         model = Account
         fields = "__all__"
 
     def create(self, validated_data):
-        user_type_id = validated_data['user_type']
+        user_type_id = validated_data["user_type"]
         try:
             master_config_instance = MasterConfig.objects.get(id=user_type_id)
         except MasterConfig.DoesNotExist:
@@ -89,18 +82,20 @@ class BulkSignUpSerializer(serializers.Serializer):
             raise serializers.ValidationError("Invalid user_type")
         password = generate_password()
         user = Account.objects.create(
-            email=validated_data['email'],
+            email=validated_data["email"],
             user_type=master_config_instance,
-            first_name=validated_data['first_name'],
-            last_name=validated_data['last_name'],
-            phone_number=validated_data['phone_number'],
-           
+            first_name=validated_data["first_name"],
+            last_name=validated_data["last_name"],
+            phone_number=validated_data["phone_number"],
         )
-        
+
         return user
 
 
-class ForgetPasswordEmailSerializer(serializers.Serializer):
+class ForgetPasswordEmailSerializer(
+    CustomValidationErrorMixin,
+    serializers.Serializer,
+):
     email = serializers.EmailField(required=True)
 
     def validate(self, data):
@@ -115,17 +110,16 @@ class ForgetPasswordEmailSerializer(serializers.Serializer):
                 if user.is_active:
                     data["user"] = user
                 else:
-                    raise ClientErrors(
-                            message="Account deactivate", response_code=401
-                        )
+                    raise ClientErrors(message="Account deactivate", response_code=401)
             else:
                 raise ClientErrors(
-                            message="Account is not verified. Please Verified First! ", response_code=401
-                        )
+                    message="Account is not verified. Please Verified First! ",
+                    response_code=401,
+                )
         return data
 
 
-class VerifyAccountSerializer(serializers.Serializer):
+class VerifyAccountSerializer(CustomValidationErrorMixin, serializers.Serializer):
     q = serializers.CharField(write_only=True, required=True)
 
     def validate(self, data):
@@ -137,7 +131,7 @@ class VerifyAccountSerializer(serializers.Serializer):
         return data
 
 
-class ResetPasswordEmailSerializer(serializers.Serializer):
+class ResetPasswordEmailSerializer(CustomValidationErrorMixin, serializers.Serializer):
     q = serializers.CharField(write_only=True, required=True)
     password = serializers.CharField(write_only=True, required=True)
 
@@ -147,6 +141,7 @@ class ResetPasswordEmailSerializer(serializers.Serializer):
         data["user"] = user
         return data
 
-# for csv_file 
-class CsvFileSerializer(serializers.Serializer):
+
+# for csv_file
+class CsvFileSerializer(CustomValidationErrorMixin, serializers.Serializer):
     path = serializers.CharField()

@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     
+    
 ]
 
 CUSTOM_APP = [
@@ -52,6 +53,7 @@ CUSTOM_APP = [
     'mferp.apps.UserConfig',
     'mferp.apps.DropsdownConfig',
     'mferp.apps.EmployeeConfig',
+    'mferp.apps.AddressConfig',
     
     # 'mferp.auth.user',
     'django_extensions',
@@ -165,12 +167,13 @@ STATIC_URL = '/static/'
 
 
 
+
 # OAuth2 Setting Configuration
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "oauth2_provider.contrib.rest_framework.OAuth2Authentication",
         "rest_framework.authentication.TokenAuthentication",
-    )
+    )   
 }
 
 # Token Expire Time
