@@ -1,8 +1,14 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .models import MasterConfig, Organization
-from .serializers import MasterConfigSerializer, OrganizationSerializer
+
+from mferp.address.models import Country, State, City
+from .models import MasterConfig, OrgAddress, Organization
+from .serializers import (
+    MasterConfigSerializer,
+    OrganizationSerializer,
+    OrgAddressSerializer,
+)
 from rest_framework import generics, mixins
 from mferp.common.errors import ClientErrors, DatabaseErrors, UserErrors
 from rest_framework.permissions import IsAuthenticated
@@ -78,112 +84,132 @@ class OrganizationView(
     queryset = Organization.objects.all()
 
     def get(self, request, *args, **kwargs):
-        try:
-            if not "pk" in kwargs:
-                return self.list(request)
-            post = get_object_or_404(Organization, pk=kwargs["pk"])
-            return Response(
-                {"data": OrganizationSerializer(post).data, "success": True},
-                status=status.HTTP_200_OK,
-            )
-        except UserErrors as error:
-            return Response(
-                {"message": error.message, "success": False}, status=error.response_code
-            )
-        except Exception as error:
-            return Response(
-                {"message": "Something Went Wrong", "success": False},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+        organizations = Organization.objects.all()
+        combined_data = []
 
-    def patch(self, request, pk=None):
-        try:
-            try:
-                instance = self.get_object()
-            except Organization.DoesNotExist:
-                return Response(
-                    {"message": "Instance is not present", "success": False},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            foreign_fields = {
-                "type_of_organization": "type_of_organization",
-                "ownership_status": "ownership_status",
-                "nature_of_organization": "nature_of_organization",
-                "region": "region",
-                "affiliated_university": "affiliated_university",
-            }
+        for org in organizations:
+            org_serializer = OrganizationSerializer(org)
+            addresses = OrgAddress.objects.filter(organization=org)
+            address_serializer = OrgAddressSerializer(addresses, many=True)
 
-            for request_key, model_field in foreign_fields.items():
-                value = request.data.get(request_key)
-                if value:
-                    instance_value = MasterConfig.objects.get(pk=value)
-                    setattr(instance, model_field, instance_value)
+            org_data = org_serializer.data
+            org_data["address"] = address_serializer.data
 
-            instance.save()
-            self.partial_update(request, pk, partial=True)
-            return Response(
-                {
-                    "message": "Successfully Updated the data",
-                    "success": True,
-                },
-                status=status.HTTP_200_OK,
-            )
+            combined_data.append(org_data)
+        return Response(
+            {"data": combined_data, "success": True},
+            status=status.HTTP_200_OK,
+        )
 
-        except UserErrors as error:
-            return Response(
-                {"message": error.message, "success": False}, status=error.response_code
-            )
-        except Exception as error:
-            return Response(
-                {"message": "Something Went Wrong", "success": False},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+    # def get(self, request, *args, **kwargs):
+    #     try:
+    #         if not "pk" in kwargs:
+    #             return self.list(request)
+    #         post = get_object_or_404(Organization, pk=kwargs["pk"])
+    #         return Response(
+    #             {"data": OrganizationSerializer(post).data, "success": True},
+    #             status=status.HTTP_200_OK,
+    #         )
+    #     except UserErrors as error:
+    #         return Response(
+    #             {"message": error.message, "success": False}, status=error.response_code
+    #         )
+    #     except Exception as error:
+    #         return Response(
+    #             {"message": "Something Went Wrong", "success": False},
+    #             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    #         )
 
-    def put(self, request, pk=None, *args, **kwargs):
-        try:
-            try:
-                instance = self.get_object()
-            except Organization.DoesNotExist:
-                return Response(
-                    {"message": "Instance is not present", "success": False},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            foreign_fields = {
-                "type_of_organization": "type_of_organization",
-                "ownership_status": "ownership_status",
-                "nature_of_organization": "nature_of_organization",
-                "region": "region",
-                "affiliated_university": "affiliated_university",
-            }
+    # def patch(self, request, pk=None):
+    #     try:
+    #         try:
+    #             instance = self.get_object()
+    #         except Organization.DoesNotExist:
+    #             return Response(
+    #                 {"message": "Instance is not present", "success": False},
+    #                 status=status.HTTP_400_BAD_REQUEST,
+    #             )
+    #         foreign_fields = {
+    #             "type_of_organization": "type_of_organization",
+    #             "ownership_status": "ownership_status",
+    #             "nature_of_organization": "nature_of_organization",
+    #             "region": "region",
+    #             "affiliated_university": "affiliated_university",
+    #         }
 
-            for request_key, model_field in foreign_fields.items():
-                value = request.data.get(request_key)
-                if value:
-                    instance_value = MasterConfig.objects.get(pk=value)
-                    setattr(instance, model_field, instance_value)
+    #         for request_key, model_field in foreign_fields.items():
+    #             value = request.data.get(request_key)
+    #             if value:
+    #                 instance_value = MasterConfig.objects.get(pk=value)
+    #                 setattr(instance, model_field, instance_value)
 
-            instance.save()
+    #         instance.save()
+    #         self.partial_update(request, pk, partial=True)
+    #         return Response(
+    #             {
+    #                 "message": "Successfully Updated the data",
+    #                 "success": True,
+    #             },
+    #             status=status.HTTP_200_OK,
+    #         )
 
-            super().update(request, *args, **kwargs)
-            return Response(
-                {
-                    "message": "Successfully Updated the data",
-                    "success": True,
-                },
-                status=status.HTTP_200_OK,
-            )
-        except UserErrors as error:
-            return Response(
-                {"message": error.args[0], "success": False}, status=error.response_code
-            )
-        except Exception as error:
-            return Response(
-                {"message": "Something Went Wrong", "success": False},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+    #     except UserErrors as error:
+    #         return Response(
+    #             {"message": error.message, "success": False}, status=error.response_code
+    #         )
+    #     except Exception as error:
+    #         return Response(
+    #             {"message": "Something Went Wrong", "success": False},
+    #             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    #         )
+
+    # def put(self, request, pk=None, *args, **kwargs):
+    #     try:
+    #         try:
+    #             instance = self.get_object()
+    #         except Organization.DoesNotExist:
+    #             return Response(
+    #                 {"message": "Instance is not present", "success": False},
+    #                 status=status.HTTP_400_BAD_REQUEST,
+    #             )
+    #         foreign_fields = {
+    #             "type_of_organization": "type_of_organization",
+    #             "ownership_status": "ownership_status",
+    #             "nature_of_organization": "nature_of_organization",
+    #             "region": "region",
+    #             "affiliated_university": "affiliated_university",
+    #         }
+
+    #         for request_key, model_field in foreign_fields.items():
+    #             value = request.data.get(request_key)
+    #             if value:
+    #                 instance_value = MasterConfig.objects.get(pk=value)
+    #                 setattr(instance, model_field, instance_value)
+
+    #         instance.save()
+
+    #         super().update(request, *args, **kwargs)
+    #         return Response(
+    #             {
+    #                 "message": "Successfully Updated the data",
+    #                 "success": True,
+    #             },
+    #             status=status.HTTP_200_OK,
+    #         )
+    #     except UserErrors as error:
+    #         return Response(
+    #             {"message": error.args[0], "success": False}, status=error.response_code
+    #         )
+    #     except Exception as error:
+    #         return Response(
+    #             {"message": "Something Went Wrong", "success": False},
+    #             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    #         )
 
     def post(self, request):
         try:
+            import ipdb;
+            ipdb.set_trace()
             data = request.data
             if ("child_count") not in request.data:
                 raise ClientErrors(message="All fields are required", response_code=400)
@@ -203,9 +229,11 @@ class OrganizationView(
                     raise ClientErrors("All field required")
                 if ("address_" + str(assign)) not in request.data:
                     raise ClientErrors("All field required")
-                if ("state_" + str(assign)) not in request.data:
-                    raise ClientErrors("All field required")
-                if ("district_" + str(assign)) not in request.data:
+                # if ("country_" + str(assign)) not in request.data:
+                #     raise ClientErrors("All field required")
+                # if ("state_" + str(assign)) not in request.data:
+                #     raise ClientErrors("All field required")
+                if ("city_" + str(assign)) not in request.data:
                     raise ClientErrors("All field required")
                 if ("pin_code_" + str(assign)) not in request.data:
                     raise ClientErrors("All field required")
@@ -228,6 +256,7 @@ class OrganizationView(
                 org_cover_banner = data.get("org_cover_banner_" + str(assign), None)
                 org_photo = data.get("org_photo_" + str(assign), None)
                 address = data.get("address_" + str(assign))
+                # country = data.get("country_" + str(assign), None)
                 city = data.get("city_" + str(assign), None)
                 landmark = data.get("landmark_" + str(assign), None)
                 pin_code = data.get("pin_code_" + str(assign))
@@ -235,7 +264,7 @@ class OrganizationView(
                 email = data.get("email_" + str(assign))
                 contact_number = data.get("contact_number_" + str(assign), None)
                 phone_number = data.get("phone_number_" + str(assign))
-                state = data.get("state_" + str(assign))
+                # state = data.get("state_" + str(assign))
 
                 instance_org_type = MasterConfig.objects.get(pk=org_type)
                 ownership_master = MasterConfig.objects.get(pk=ownership_status)
@@ -243,52 +272,61 @@ class OrganizationView(
                 instance_region = MasterConfig.objects.get(pk=region)
                 instance_affiliated = MasterConfig.objects.get(pk=affiliated_university)
 
+                # country_instance = Country.objects.get(pk=country)
+                # state_instance = State.objects.get(pk=state)
+                city_instance = City.objects.get(pk=city)
+
                 if assign == 0:
                     obj = Organization.objects.create(
                         type_of_organization=instance_org_type,
                         org_name=org_name,
                         ownership_status=ownership_master,
                         nature_of_organization=instance_nature,
-                        region=instance_region,
                         affiliated_university=instance_affiliated,
                         establishment_date=establishment_date,
                         short_code=org_short_code,
                         logo_org=org_logo,
                         cover_banner_org=org_cover_banner,
                         photo_org=org_photo,
+                    )
+                    OrgAddress.objects.create(
+                        organization=obj,
+                        region=instance_region,
                         address=address,
-                        city=city,
                         landmark=landmark,
-                        pin_code=pin_code,
+                        zip=pin_code,
+                        city=city_instance,
                         web_address=web_address,
                         email=email,
                         contact_number=contact_number,
                         phone_number=phone_number,
-                        state=state,
                     )
 
                 else:
-                    Organization.objects.create(
+                    child_obj = Organization.objects.create(
                         type_of_organization=instance_org_type,
+                        org_name=org_name,
                         ownership_status=ownership_master,
                         nature_of_organization=instance_nature,
-                        region=instance_region,
                         affiliated_university=instance_affiliated,
                         establishment_date=establishment_date,
                         short_code=org_short_code,
                         logo_org=org_logo,
                         cover_banner_org=org_cover_banner,
                         photo_org=org_photo,
+                        parent=obj,
+                    )
+                    OrgAddress.objects.create(
+                        organization=child_obj,
+                        region=instance_region,
                         address=address,
-                        city=city,
                         landmark=landmark,
-                        pin_code=pin_code,
+                        zip=pin_code,
+                        city=city_instance,
                         web_address=web_address,
                         email=email,
                         contact_number=contact_number,
                         phone_number=phone_number,
-                        state=state,
-                        parent=obj,
                     )
             return Response(
                 {

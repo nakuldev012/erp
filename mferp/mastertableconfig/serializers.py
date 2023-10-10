@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import MasterConfig, Organization
+from .models import MasterConfig, Organization, OrgAddress
 
 
 class MasterConfigSerializer(serializers.ModelSerializer):
@@ -49,3 +49,8 @@ class OrganizationSerializer(serializers.ModelSerializer):
             validated_data['parent'] = parent_category
        
         return super().create(validated_data)
+    
+class OrgAddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OrgAddress
+

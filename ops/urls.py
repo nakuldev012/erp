@@ -22,5 +22,6 @@ urlpatterns = [
     path('user/', include('mferp.auth.user.urls')),
     path('employee/', include('mferp.auth.employee.urls')),
     path('dropsdown/', include('mferp.dropsdown.urls')),
+    path('address/', include('mferp.address.urls')),
 
 ]
