@@ -25,7 +25,11 @@ class CreateCategoryOrSubcategoryView(
 
     def patch(self, request, pk=None):
         try:
-            return self.partial_update(request, pk, partial=True)
+            self.partial_update(request, pk, partial=True)
+            return Response(
+            {"data": "data is updatated ", "success": True},
+            status=status.HTTP_200_OK,
+        )
 
         except UserErrors as error:
             return Response(
@@ -37,18 +41,18 @@ class CreateCategoryOrSubcategoryView(
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-    def put(self, request, pk=None):
-        try:
-            return self.update(request, pk)
-        except UserErrors as error:
-            return Response(
-                {"message": error.message, "success": False}, status=error.response_code
-            )
-        except Exception as error:
-            return Response(
-                {"message": "Something Went Wrong", "success": False},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+    # def put(self, request, pk=None):
+    #     try:
+    #         return self.update(request, pk)
+    #     except UserErrors as error:
+    #         return Response(
+    #             {"message": error.message, "success": False}, status=error.response_code
+    #         )
+    #     except Exception as error:
+    #         return Response(
+    #             {"message": "Something Went Wrong", "success": False},
+    #             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    #         )
 
     def post(self, request):
         try:
