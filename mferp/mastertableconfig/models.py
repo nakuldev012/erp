@@ -64,48 +64,50 @@ class Organization(AbstractTime):
         blank=True,
         unique=True,
     )
+    
     logo_org = models.ImageField(upload_to="mferp/mastertableconfig/", max_length=250, null=True, blank=True)
     cover_banner_org = models.ImageField(upload_to="mferp/mastertableconfig/", max_length=250, null=True, blank=True)
     photo_org = models.ImageField(upload_to="mferp/mastertableconfig/", max_length=250, null=True, blank=True)
-    # address = models.TextField("Address", null=False, blank=False)
+    # address = models.TextField("Address", null=True, blank=True)
     # city = models.CharField("City", max_length=150, null=True, blank=True)
     # landmark = models.CharField("Landmark", max_length=250, null=True, blank=True)
-    # state = models.CharField("State", max_length=150)
+    # state = models.CharField("State", max_length=150,null=True, blank=True)
     # district = models.CharField(
     #     "District",
-    #     max_length=250,
+    #     max_length=250,null=True, blank=True
     # )
     # pin_code = models.CharField(
     #     "Pin Code",
-    #     max_length=150,
+    #     max_length=150,null=True, blank=True
     # )
     # email = models.EmailField(
     #     "Email Address",
     #     max_length=255,
-    #     unique=True,
+    #     unique=True,null=True, blank=True
     # )
     # web_address = models.CharField("Web Address", max_length=255, null=True, blank=True)
     # contact_number = models.CharField(
     #     validators=[phone_validator], max_length=17, null=True, blank=True
     # )
-    # phone_number = models.CharField(validators=[phone_validator], max_length=17)
-    # max_subcategory_level = models.PositiveIntegerField(default=5)
+    # phone_number = models.CharField(validators=[phone_validator], max_length=17,null=True, blank=True)
+    # max_subcategory_level = models.PositiveIntegerField(default=5,null=True, blank=True)
 
 
 class OrgAddress(BaseAddress):
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name="orgaddress_organization")
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name="orgaddress_organization", null=True, blank=True)
     region = models.ForeignKey(
         "mastertableconfig.MasterConfig",
         on_delete=models.CASCADE,
-        related_name="orgaddress_region",
+        related_name="orgaddress_region",null=True, blank=True
     )
+    
     email = models.EmailField(
         "Email Address",
         max_length=255,
-        unique=True,
+        unique=True,null=True, blank=True
     )
     web_address = models.CharField("Web Address", max_length=255, null=True, blank=True)
     contact_number = models.CharField(
         validators=[phone_validator], max_length=17, null=True, blank=True
     )
-    phone_number = models.CharField(validators=[phone_validator], max_length=17)
+    phone_number = models.CharField(validators=[phone_validator], max_length=17, null=True, blank=True)

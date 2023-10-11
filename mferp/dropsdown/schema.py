@@ -6,11 +6,16 @@ class MasterConfigType(DjangoObjectType):
     class Meta:
         model = MasterConfig
 
-class Query(graphene.ObjectType):
-    all_master_configs = graphene.List(MasterConfigType, id=graphene.Int())
 
-    def resolve_all_master_configs(self, info, id=None):
-        if id is not None:
+
+class Query(graphene.ObjectType):
+    all_master_configs = graphene.List(MasterConfigType, label=graphene.String(), id=graphene.Int())
+
+    def resolve_all_master_configs(self, info, label=None, id=None):
+        if label is not None and id is None:
+            # Retrieve all subcategories of the specified label
+            return MasterConfig.objects.filter(parent__label=label)
+        elif id is not None and label is None:
             # Retrieve all subcategories of the specified id
             return MasterConfig.objects.filter(parent_id=id)
         else:

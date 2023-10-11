@@ -61,20 +61,22 @@ class SignUpSerializer(CustomValidationErrorMixin, serializers.ModelSerializer):
         return user
 
 
-# for bulk user's registration via csv file
-class BulkSignUpSerializer(CustomValidationErrorMixin, serializers.Serializer):
+
+class BulkSignUpSerializer(CustomValidationErrorMixin,serializers.Serializer):
+    
     email = serializers.EmailField()
     user_type = serializers.IntegerField()
     first_name = serializers.CharField(max_length=250)
     last_name = serializers.CharField(max_length=250)
     phone_number = serializers.CharField(max_length=17, required=False)
-
+    
     class Meta:
         model = Account
         fields = "__all__"
 
+
     def create(self, validated_data):
-        user_type_id = validated_data["user_type"]
+        user_type_id = validated_data['user_type']
         try:
             master_config_instance = MasterConfig.objects.get(id=user_type_id)
         except MasterConfig.DoesNotExist:
@@ -82,14 +84,16 @@ class BulkSignUpSerializer(CustomValidationErrorMixin, serializers.Serializer):
             raise serializers.ValidationError("Invalid user_type")
         password = generate_password()
         user = Account.objects.create(
-            email=validated_data["email"],
+            email=validated_data['email'],
             user_type=master_config_instance,
-            first_name=validated_data["first_name"],
-            last_name=validated_data["last_name"],
-            phone_number=validated_data["phone_number"],
+            first_name=validated_data['first_name'],
+            last_name=validated_data['last_name'],
+            phone_number=validated_data['phone_number'],
+           
         )
-
+        
         return user
+
 
 
 class ForgetPasswordEmailSerializer(

@@ -27,7 +27,7 @@ class CreateCategoryOrSubcategoryView(
         try:
             self.partial_update(request, pk, partial=True)
             return Response(
-            {"data": "data is updatated ", "success": True},
+            {"message": "data is updatated ", "success": True},
             status=status.HTTP_200_OK,
         )
 
@@ -61,7 +61,7 @@ class CreateCategoryOrSubcategoryView(
             if serializer.is_valid():
                 serializer.save()
                 return Response(
-                    {"data": serializer.data, "success": True},
+                    {"message": "Category is Successfully Created", "success": True},
                     status=status.HTTP_201_CREATED,
                 )
 
@@ -212,8 +212,6 @@ class OrganizationView(
 
     def post(self, request):
         try:
-            import ipdb;
-            ipdb.set_trace()
             data = request.data
             if ("child_count") not in request.data:
                 raise ClientErrors(message="All fields are required", response_code=400)
