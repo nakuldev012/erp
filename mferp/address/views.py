@@ -16,69 +16,101 @@ class CountryAPIView(generics.GenericAPIView, mixins.ListModelMixin):
 
     def get(self, request, *args, **kwargs):
         try:
-            return self.list(request)
-        except UserErrors as error:
+            queryset = Country.objects.all()
             return Response(
-                {"message": error.message, "success": False}, status=error.response_code
+                {
+                    "data": CountrySerializer(queryset, many=True).data,
+                    "success": True,
+                    "status": status.HTTP_200_OK,
+                }
+            )
+        except UserErrors as error:
+            return (
+                Response(
+                    {
+                        "message": error.message,
+                        "success": False,
+                        "status": error.response_code,
+                    }
+                ),
             )
         except Exception as error:
             return Response(
-                {"message": "Something Went Wrong", "success": False},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {
+                    "message": "Something Went Wrong",
+                    "success": False,
+                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                },
             )
-        
+
 
 class GetStateAPIView(APIView):
     serializer_class = StateSerializer
     # permission_class = [IsAuthenticated]
     queryset = State.objects.all()
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request, pk=None):
         try:
-            params = request.query_params
-            country_id = params.get("country_id")
-            if not country_id:
+            if not pk:
                 raise ClientErrors(message="No country id provided", response_code=400)
-            country = get_object_or_404(Country, pk=country_id)
+            country = get_object_or_404(Country, pk=pk)
             queryset = State.objects.filter(country=country)
             return Response(
-                {"data": StateSerializer(queryset, many=True).data, "success": True},
-                status=status.HTTP_200_OK,
+                {
+                    "data": StateSerializer(queryset, many=True).data,
+                    "success": True,
+                    "status": status.HTTP_200_OK,
+                },
             )
         except UserErrors as error:
             return Response(
-                {"message": error.message, "success": False}, status=error.response_code
+                {
+                    "message": error.message,
+                    "success": False,
+                    "status": error.response_code,
+                }
             )
         except Exception as error:
             return Response(
-                {"message": "Something Went Wrong", "success": False},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {
+                    "message": "Something Went Wrong",
+                    "success": False,
+                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                }
             )
-        
+
 
 class GetCityAPIView(APIView):
     serializer_class = CitySerializer
     # permission_class = [IsAuthenticated]
     queryset = City.objects.all()
 
-    def get(self, request, *args, **kwargs):
+    def get(self, request, pk=None):
         try:
-            params = request.query_params
-            state_id = params.get("state_id")
-            if not state_id:
+            if not pk:
                 raise ClientErrors(message="No state id provided", response_code=400)
-            state = get_object_or_404(State, pk=state_id)
+            state = get_object_or_404(State, pk=pk)
             queryset = City.objects.filter(state=state)
             return Response(
-                {"data": CitySerializer(queryset, many=True).data, "success": True},
-                status=status.HTTP_200_OK,
+                {
+                    "data": CitySerializer(queryset, many=True).data,
+                    "success": True,
+                    "status": status.HTTP_200_OK,
+                }
             )
         except UserErrors as error:
             return Response(
-                {"message": error.message, "success": False}, status=error.response_code
+                {
+                    "message": error.message,
+                    "success": False,
+                    "status": error.response_code,
+                }
             )
         except Exception as error:
             return Response(
-                {"message": "Something Went Wrong", "success": False},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {
+                    "message": "Something Went Wrong",
+                    "success": False,
+                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                }
             )

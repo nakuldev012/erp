@@ -69,15 +69,28 @@ class UserSignUpView(APIView):
                 {
                     "message": "Account Created Successfully",
                     "success": True,
-                    "token" :enc_token
+                    "token" :enc_token,
+                    "status":status.HTTP_200_OK,
                 },
-                status=status.HTTP_200_OK,
+                
                 )
                 # else:
                 #     raise Exception(password_check)
         except UserErrors as error:
             return Response(
-                {"message": error.message, "success": False}, status=error.response_code
+                {
+                    "message": error.message,
+                    "success": False,
+                    "status": error.response_code,
+                }
+            )
+        except Exception as error:
+            return Response(
+                {
+                    "message": "Something Went Wrong",
+                    "success": False,
+                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                }
             )
 
 
@@ -132,12 +145,25 @@ class BulkUserSignUpView(APIView):
                 {
                     "message": "Account Created Successfully",
                     "success": True,
+                    "status":status.HTTP_200_OK,
                     # "token": enc_token,
                 })
         
         except UserErrors as error:
             return Response(
-                {"message": error.message, "success": False}, status=error.response_code
+                {
+                    "message": error.message,
+                    "success": False,
+                    "status": error.response_code,
+                }
+            )
+        except Exception as error:
+            return Response(
+                {
+                    "message": "Something Went Wrong",
+                    "success": False,
+                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                }
             )
         
 
@@ -162,20 +188,27 @@ class UserLoginView(APIView):
                     "is_verified": user.is_verified,
                     "token": token,
                     "success": True,
-                },
-                status=status.HTTP_200_OK,
+                    "status":status.HTTP_200_OK,
+                }
+                
             )
 
         except UserErrors as error:
             return Response(
-                {"message": error.message, "success": False}, status=error.response_code
+                {
+                    "message": error.message,
+                    "success": False,
+                    "status": error.response_code,
+                }
             )
         except Exception as error:
             return Response(
-                    {"message": "Something Went Wrong", "success": False},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                )
-      
+                {
+                    "message": "Something Went Wrong",
+                    "success": False,
+                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                }
+            )
 
 class UserLogoutView(APIView):
     permission_classes = [
@@ -195,12 +228,24 @@ class UserLogoutView(APIView):
             refresh_tokens.delete()
             user_token.delete()
             return Response(
-                {"message": "You are successfully logout", "success": True},
-                status=status.HTTP_200_OK,
+                {"message": "You are successfully logout", "success": True, "status":status.HTTP_200_OK,},
+                
             )
         except UserErrors as error:
             return Response(
-                {"message": error.message, "success": False}, status=error.response_code
+                {
+                    "message": error.message,
+                    "success": False,
+                    "status": error.response_code,
+                }
+            )
+        except Exception as error:
+            return Response(
+                {
+                    "message": "Something Went Wrong",
+                    "success": False,
+                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                }
             )
 
 
