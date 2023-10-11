@@ -1,6 +1,6 @@
 import base64
 import csv
-import os 
+import os
 from rest_framework.parsers import FileUploadParser
 from django.http import HttpRequest, HttpResponseRedirect
 from django.db.models import Q
@@ -8,7 +8,7 @@ from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
 from django.urls import reverse
 import requests
-from mferp.common.functions import check_password,generate_password
+from mferp.common.functions import check_password, generate_password
 from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
@@ -23,12 +23,13 @@ from .serializers import (
     UserLoginSerializer,
     SignUpSerializer,
     ResetPasswordEmailSerializer,
-    BulkSignUpSerializer,CsvFileSerializer
+    BulkSignUpSerializer,
+    CsvFileSerializer,
 )
 from django.http import FileResponse
 from oauth2_provider.models import AccessToken, RefreshToken
 from rest_framework.permissions import IsAuthenticated
-from mferp.common.emailer import email_verify, forget_password,login_credentials
+from mferp.common.emailer import email_verify, forget_password, login_credentials
 from datetime import datetime
 
 BASE_URL = settings.BASE_URL
@@ -43,7 +44,6 @@ class UserSignUpView(APIView):
         Create a new User and return auth token
         """
         try:
-           
             serializer = SignUpSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             if Account.objects.filter(email=request.data["email"]):
@@ -57,9 +57,8 @@ class UserSignUpView(APIView):
             enc_token = encode_token(token)
             link = BASE_URL + "/user/v1/verify-account" + "?q=" + enc_token
             email = request.data["email"]
-            password=user.password
+            password = user.password
             try:
-                
                 email_verify(f"Account Verification Email - ERP 3.0  ", email, link)
 
                 # email_verify("Account Verification Email - ERP 3.0\n {password}", email, link)
@@ -69,13 +68,12 @@ class UserSignUpView(APIView):
                 {
                     "message": "Account Created Successfully",
                     "success": True,
-                    "token" :enc_token,
-                    "status":status.HTTP_200_OK,
+                    "token": enc_token,
+                    "status": status.HTTP_200_OK,
                 },
-                
-                )
-                # else:
-                #     raise Exception(password_check)
+            )
+            # else:
+            #     raise Exception(password_check)
         except UserErrors as error:
             return Response(
                 {
@@ -102,29 +100,36 @@ class BulkUserSignUpView(APIView):
 
     def post(self, request):
         try:
-            csv_file = request.data.get('file') 
+            csv_file = request.data.get("file")
             if not csv_file:
-                return Response({'error': 'CSV file not provided'}, status=status.HTTP_400_BAD_REQUEST)
-            csv_data = csv.reader(csv_file.read().decode('utf-8').splitlines())
+                return Response(
+                    {"error": "CSV file not provided"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+            csv_data = csv.reader(csv_file.read().decode("utf-8").splitlines())
             # responses = []
             for row in csv_data:
-                if len(row)==5 and row[0]!="email":
+                if len(row) == 5 and row[0] != "email":
                     try:
                         # Convert 'user_type' from string to integer
                         user_type = int(row[1])
                     except ValueError:
                         user_type = None
-                    
+
                     user_data = {
-                        'email': row[0],  # Assuming email is the first column
+                        "email": row[0],  # Assuming email is the first column
                         # Check if the second column exists before accessing it
-                        'user_type': user_type,
-                        'first_name': row[2],  # Assuming first_name is the third column
-                        'last_name': row[3],  # Assuming last_name is the fourth column    
-                        'phone_number': row[4] # Assuming phone_number is the fifth column
+                        "user_type": user_type,
+                        "first_name": row[2],  # Assuming first_name is the third column
+                        "last_name": row[3],  # Assuming last_name is the fourth column
+                        "phone_number": row[
+                            4
+                        ],  # Assuming phone_number is the fifth column
                     }
 
-                    serializer = BulkSignUpSerializer(data=user_data)  # Pass the user_data dictionary to the serializer
+                    serializer = BulkSignUpSerializer(
+                        data=user_data
+                    )  # Pass the user_data dictionary to the serializer
                     if serializer.is_valid():
                         user = serializer.save()
                         user_token = get_access_token(user=user)
@@ -134,21 +139,28 @@ class BulkUserSignUpView(APIView):
                         email = user.email
                         # password = user.password
                         user.is_verified = True
-                        password=generate_password()
+                        password = generate_password()
                         user.set_password(password)
                         user.save()
                         try:
-                            login_credentials(f"you are successfully registered with us. please login with your registered email id and password given here!!",email, password)
+                            login_credentials(
+                                f"you are successfully registered with us. please login with your registered email id and password given here!!",
+                                email,
+                                password,
+                            )
                         except:
-                            UserErrors(message="Please check your Email ID.", response_code=500)
-            return Response ( 
+                            UserErrors(
+                                message="Please check your Email ID.", response_code=500
+                            )
+            return Response(
                 {
                     "message": "Account Created Successfully",
                     "success": True,
-                    "status":status.HTTP_200_OK,
+                    "status": status.HTTP_200_OK,
                     # "token": enc_token,
-                })
-        
+                }
+            )
+
         except UserErrors as error:
             return Response(
                 {
@@ -165,7 +177,6 @@ class BulkUserSignUpView(APIView):
                     "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
                 }
             )
-        
 
 
 class UserLoginView(APIView):
@@ -177,7 +188,6 @@ class UserLoginView(APIView):
         Login Ops user and return new auth token
         """
         try:
-            
             serializer = UserLoginSerializer(data=request.data)
             serializer.is_valid(raise_exception=True)
             user = serializer.validated_data["user"]
@@ -188,9 +198,8 @@ class UserLoginView(APIView):
                     "is_verified": user.is_verified,
                     "token": token,
                     "success": True,
-                    "status":status.HTTP_200_OK,
+                    "status": status.HTTP_200_OK,
                 }
-                
             )
 
         except UserErrors as error:
@@ -209,6 +218,7 @@ class UserLoginView(APIView):
                     "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
                 }
             )
+
 
 class UserLogoutView(APIView):
     permission_classes = [
@@ -228,8 +238,11 @@ class UserLogoutView(APIView):
             refresh_tokens.delete()
             user_token.delete()
             return Response(
-                {"message": "You are successfully logout", "success": True, "status":status.HTTP_200_OK,},
-                
+                {
+                    "message": "You are successfully logout",
+                    "success": True,
+                    "status": status.HTTP_200_OK,
+                },
             )
         except UserErrors as error:
             return Response(
@@ -269,7 +282,6 @@ class VerifyAccountView(APIView):
     def get(self, request: HttpRequest) -> Response:
         """Get Email Code And Verify Account"""
         try:
-            
             serializer = VerifyAccountSerializer(data=request.query_params)
             serializer.is_valid(raise_exception=True)
             user = serializer.validated_data["user"]
@@ -280,34 +292,46 @@ class VerifyAccountView(APIView):
                     response_code=400,
                 )
             else:
-                
                 user.is_verified = True
-                password=generate_password()
+                password = generate_password()
                 user.set_password(password)
                 user.save()
-                email=user.email
+                email = user.email
                 try:
-                   
-                    login_credentials(f"your account is verified. please login with your registered email id and password given here!!",email, password)
+                    login_credentials(
+                        f"your account is verified. please login with your registered email id and password given here!!",
+                        email,
+                        password,
+                    )
                 except:
                     UserErrors(message="Please check your Email ID.", response_code=500)
                 return Response(
-                    {"message": "Account Verified Successfully", "success": True},
-                    status=status.HTTP_200_OK,
+                    {
+                        "message": "Account Verified Successfully",
+                        "success": True,
+                        "status": status.HTTP_200_OK,
+                    }
                 )
 
         except UserErrors as error:
             return Response(
-                {"message": error.message, "success": False}, status=error.response_code
+                {
+                    "message": error.message,
+                    "success": False,
+                    "status": error.response_code,
+                }
             )
         except Exception as error:
             return Response(
-                {"message": "Something Went Wrong", "success": False},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {
+                    "message": "Something Went Wrong",
+                    "success": False,
+                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                }
             )
 
 
-class ForgetPasswordEmailView( APIView):
+class ForgetPasswordEmailView(APIView):
     def post(self, request: HttpRequest) -> Response:
         """
         Trigger Email For Client Forget Password API
@@ -331,12 +355,24 @@ class ForgetPasswordEmailView( APIView):
                 {
                     "message": "Account Verification Email Sent Successfully",
                     "success": True,
+                    "status": status.HTTP_200_OK,
                 },
-                status=status.HTTP_200_OK,
             )
         except UserErrors as error:
             return Response(
-                {"message": error.message, "success": False}, status=error.response_code
+                {
+                    "message": error.message,
+                    "success": False,
+                    "status": error.response_code,
+                }
+            )
+        except Exception as error:
+            return Response(
+                {
+                    "message": "Something Went Wrong",
+                    "success": False,
+                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                }
             )
 
 
@@ -374,13 +410,25 @@ class ForgetPasswordVerifyView(APIView):
                 {
                     "message": "Token is valid you can reset your password",
                     "success": True,
+                    "status": status.HTTP_200_OK,
                 },
-                status=status.HTTP_200_OK,
             )
 
         except UserErrors as error:
             return Response(
-                {"message": error.message, "success": False}, status=error.response_code
+                {
+                    "message": error.message,
+                    "success": False,
+                    "status": error.response_code,
+                }
+            )
+        except Exception as error:
+            return Response(
+                {
+                    "message": "Something Went Wrong",
+                    "success": False,
+                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                }
             )
 
 
@@ -410,12 +458,24 @@ class ResetPasswordView(APIView):
                 {
                     "message": "Password reset successfully",
                     "success": True,
+                    "status": status.HTTP_200_OK,
                 },
-                status=status.HTTP_200_OK,
             )
         except UserErrors as error:
             return Response(
-                {"message": error.message, "success": False}, status=error.response_code
+                {
+                    "message": error.message,
+                    "success": False,
+                    "status": error.response_code,
+                }
+            )
+        except Exception as error:
+            return Response(
+                {
+                    "message": "Something Went Wrong",
+                    "success": False,
+                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                }
             )
 
 
@@ -459,60 +519,109 @@ class ChangePasswordView(APIView):
                     "token": token,
                     "message": "Password reset successfully",
                     "success": True,
+                    "status": status.HTTP_200_OK,
                 },
-                status=status.HTTP_200_OK,
             )
         except UserErrors as error:
             return Response(
-                {"message": error.message, "success": False}, status=error.response_code
+                {
+                    "message": error.message,
+                    "success": False,
+                    "status": error.response_code,
+                }
+            )
+        except Exception as error:
+            return Response(
+                {
+                    "message": "Something Went Wrong",
+                    "success": False,
+                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                }
             )
 
-            
+
 class CsvFileView(APIView):
     # permission_classes = [IsAuthenticated]
 
     def get(self, request):
-            csv_file_path = csv_file_path = os.path.join(settings.MEDIA_ROOT, 'bulkregistrationtemplate.csv')
-            data = {'path': csv_file_path}
+        try:
+            csv_file_path = csv_file_path = os.path.join(
+                settings.MEDIA_ROOT, "bulkregistrationtemplate.csv"
+            )
+            data = {"path": csv_file_path}
             serializer = CsvFileSerializer(data=data)
             if serializer.is_valid():
                 return Response(serializer.validated_data)
             else:
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-            
+        except UserErrors as error:
+            return Response(
+                {
+                    "message": error.message,
+                    "success": False,
+                    "status": error.response_code,
+                }
+            )
+        except Exception as error:
+            return Response(
+                {
+                    "message": "Something Went Wrong",
+                    "success": False,
+                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                }
+            )
+
 
 class BulkUserSignUpView(APIView):
     def post(self, request):
         try:
             # Check if the 'file' key is in request.FILES
-            if 'file' not in request.FILES:
-                return Response({'message': 'CSV file not provided'}, status=status.HTTP_400_BAD_REQUEST)
+            if "file" not in request.FILES:
+                return Response(
+                    {
+                        "message": "CSV file not provided",
+                        "status": status.HTTP_400_BAD_REQUEST,
+                    },
+                )
 
-            csv_file = request.FILES['file']
+            csv_file = request.FILES["file"]
 
             # Check if it's a CSV file
-            if not csv_file.name.endswith('.csv'):
-                return Response({'message': 'File format not supported. Please upload a CSV file.'}, status=status.HTTP_400_BAD_REQUEST)
+            if not csv_file.name.endswith(".csv"):
+                return Response(
+                    {
+                        "message": "File format not supported. Please upload a CSV file.",
+                        "status": status.HTTP_400_BAD_REQUEST,
+                    },
+                )
 
             # Initialize a list to store responses
             # responses = []
 
             # Read the CSV file and process each row
-            csv_data = csv.reader(csv_file.read().decode('utf-8').splitlines())
-            existing_emails = set(Account.objects.values_list('email', flat=True))  # Get a set of existing emails
+            csv_data = csv.reader(csv_file.read().decode("utf-8").splitlines())
+            existing_emails = set(
+                Account.objects.values_list("email", flat=True)
+            )  # Get a set of existing emails
             duplicate_email_count = 0
-            
+
             for row in csv_data:
-                if len(row)==5 and row[0]!="email":
+                if len(row) == 5 and row[0] != "email":
                     email = row[0]
                     if email in existing_emails:
                         duplicate_email_count += 1
 
             if duplicate_email_count > 0:
                 error_message = f"{duplicate_email_count} email(s) already registered in the CSV file."
-                return Response({'message': error_message, 'success': False}, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {
+                        "message": error_message,
+                        "success": False,
+                        "status": status.HTTP_400_BAD_REQUEST,
+                    }
+                )
             csv_file.seek(0)
-            csv_data = csv.reader(csv_file.read().decode('utf-8').splitlines())
+            csv_data = csv.reader(csv_file.read().decode("utf-8").splitlines())
             for row in csv_data:
                 if len(row) == 5 and row[0] != "email":
                     try:
@@ -522,13 +631,17 @@ class BulkUserSignUpView(APIView):
                         user_type = None
 
                     user_data = {
-                        'email': row[0],         # Assuming email is the first column
-                        'user_type': user_type,  # Assuming user_type is the second column
-                        'first_name': row[2],    # Assuming first_name is the third column
-                        'last_name': row[3],     # Assuming last_name is the fourth column
-                        'phone_number': row[4]   # Assuming phone_number is the fifth column
+                        "email": row[0],  # Assuming email is the first column
+                        "user_type": user_type,  # Assuming user_type is the second column
+                        "first_name": row[2],  # Assuming first_name is the third column
+                        "last_name": row[3],  # Assuming last_name is the fourth column
+                        "phone_number": row[
+                            4
+                        ],  # Assuming phone_number is the fifth column
                     }
-                    serializer = BulkSignUpSerializer(data=user_data)  # Pass the user_data dictionary to the serializer
+                    serializer = BulkSignUpSerializer(
+                        data=user_data
+                    )  # Pass the user_data dictionary to the serializer
                     if serializer.is_valid():
                         user = serializer.save()
                         user_token = get_access_token(user=user)
@@ -537,38 +650,42 @@ class BulkUserSignUpView(APIView):
                         # link = BASE_URL + "/v1/verify-account" + "?q=" + enc_token
                         email = user.email
                         user.is_verified = True
-                        password=generate_password()
+                        password = generate_password()
                         user.set_password(password)
                         user.save()
                         try:
-                            login_credentials(f"you are successfully registered with us. please login with your registered email id and password given here!!",email, password)
+                            login_credentials(
+                                f"you are successfully registered with us. please login with your registered email id and password given here!!",
+                                email,
+                                password,
+                            )
                         except:
-                            UserErrors(message="Please check your Email ID.", response_code=500)
-            return Response ( 
-                {
-                    "message": "Account Created Successfully",
-                    "success": True,
-                    # "token": enc_token,
-                },status=status.HTTP_200_OK,)
-
-           
+                            UserErrors(
+                                message="Please check your Email ID.", response_code=500
+                            )
         except UserErrors as error:
             return Response(
-                {"message": error.message, "success": False}, status=error.response_code
+                {
+                    "message": error.message,
+                    "success": False,
+                    "status": error.response_code,
+                }
             )
-                    
         except Exception as error:
             return Response(
-                    {"message": "Something Went Wrong", "success": False},
-                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                )    
+                {
+                    "message": "Something Went Wrong",
+                    "success": False,
+                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                }
+            )
 
 
 # class CsvFileView(APIView):
 #     def get(self, request):
 #         # Get the filename from the query parameter 'filename'
 #         filename = request.query_params.get('filename')
-        
+
 #         if not filename:
 #             return Response({'error': 'Query parameter "filename" is required'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -583,4 +700,3 @@ class BulkUserSignUpView(APIView):
 #                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 #         else:
 #             return Response({'error': 'File not found'}, status=status.HTTP_404_NOT_FOUND)
-        

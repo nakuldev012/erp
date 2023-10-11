@@ -27,18 +27,28 @@ class CreateCategoryOrSubcategoryView(
         try:
             self.partial_update(request, pk, partial=True)
             return Response(
-            {"message": "data is updatated ", "success": True},
-            status=status.HTTP_200_OK,
-        )
+                {
+                    "message": "data is updatated ",
+                    "success": True,
+                    "status": status.HTTP_200_OK,
+                },
+            )
 
         except UserErrors as error:
             return Response(
-                {"message": error.message, "success": False}, status=error.response_code
+                {
+                    "message": error.message,
+                    "success": False,
+                    "status": error.response_code,
+                }
             )
         except Exception as error:
             return Response(
-                {"message": "Something Went Wrong", "success": False},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {
+                    "message": "Something Went Wrong",
+                    "success": False,
+                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                }
             )
 
     # def put(self, request, pk=None):
@@ -66,17 +76,27 @@ class CreateCategoryOrSubcategoryView(
                 )
 
             return Response(
-                {"data": serializer.errors, "success": False},
-                status=status.HTTP_400_BAD_REQUEST,
+                {
+                    "data": serializer.errors,
+                    "success": False,
+                    "status": status.HTTP_400_BAD_REQUEST,
+                },
             )
         except UserErrors as error:
             return Response(
-                {"message": error.message, "success": False}, status=error.response_code
+                {
+                    "message": error.message,
+                    "success": False,
+                    "status": error.response_code,
+                }
             )
         except Exception as error:
             return Response(
-                {"message": "Something Went Wrong", "success": False},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {
+                    "message": "Something Went Wrong",
+                    "success": False,
+                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                }
             )
 
 
@@ -88,22 +108,42 @@ class OrganizationView(
     queryset = Organization.objects.all()
 
     def get(self, request, *args, **kwargs):
-        organizations = Organization.objects.all()
-        combined_data = []
+        try:
+            organizations = Organization.objects.all()
+            combined_data = []
 
-        for org in organizations:
-            org_serializer = OrganizationSerializer(org)
-            addresses = OrgAddress.objects.filter(organization=org)
-            address_serializer = OrgAddressSerializer(addresses, many=True)
+            for org in organizations:
+                org_serializer = OrganizationSerializer(org)
+                addresses = OrgAddress.objects.filter(organization=org)
+                address_serializer = OrgAddressSerializer(addresses, many=True)
 
-            org_data = org_serializer.data
-            org_data["address"] = address_serializer.data
+                org_data = org_serializer.data
+                org_data["address"] = address_serializer.data
 
-            combined_data.append(org_data)
-        return Response(
-            {"data": combined_data, "success": True},
-            status=status.HTTP_200_OK,
-        )
+                combined_data.append(org_data)
+            return Response(
+                {
+                    "data": combined_data,
+                    "success": True,
+                    "status": status.HTTP_200_OK,
+                },
+            )
+        except UserErrors as error:
+            return Response(
+                {
+                    "message": error.message,
+                    "success": False,
+                    "status": error.response_code,
+                }
+            )
+        except Exception as error:
+            return Response(
+                {
+                    "message": "Something Went Wrong",
+                    "success": False,
+                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                }
+            )
 
     # def get(self, request, *args, **kwargs):
     #     try:
@@ -334,16 +374,23 @@ class OrganizationView(
                 {
                     "message": "Organisation Successfully Created",
                     "success": True,
-                },
-                status=status.HTTP_201_CREATED,
+                    "status": status.HTTP_201_CREATED,
+                }
             )
 
         except UserErrors as error:
             return Response(
-                {"message": error.message, "success": False}, status=error.response_code
+                {
+                    "message": error.message,
+                    "success": False,
+                    "status": error.response_code,
+                }
             )
         except Exception as error:
             return Response(
-                {"message": "Something Went Wrong", "success": False},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                {
+                    "message": "Something Went Wrong",
+                    "success": False,
+                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
+                }
             )
