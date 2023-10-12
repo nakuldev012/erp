@@ -5,7 +5,7 @@ import requests
 from mferp.auth.user.tokens import decode_token, get_access_token
 from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
-from mferp.common.errors import ClientErrors, CustomValidationErrorMixin
+from mferp.common.errors import ClientErrors
 from .models import MasterConfig, Account
 from django.db.models import Q
 from rest_framework.response import Response
@@ -16,7 +16,7 @@ from rest_framework import status
 from mferp.common.functions import check_password, generate_password
 
 
-class UserLoginSerializer(CustomValidationErrorMixin, serializers.Serializer):
+class UserLoginSerializer(serializers.Serializer):
     """
     Return authenticated user email
     data:
@@ -45,7 +45,7 @@ class UserLoginSerializer(CustomValidationErrorMixin, serializers.Serializer):
         return data
 
 
-class SignUpSerializer(CustomValidationErrorMixin, serializers.ModelSerializer):
+class SignUpSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=False)
 
     class Meta:
@@ -62,7 +62,7 @@ class SignUpSerializer(CustomValidationErrorMixin, serializers.ModelSerializer):
 
 
 
-class BulkSignUpSerializer(CustomValidationErrorMixin,serializers.Serializer):
+class BulkSignUpSerializer(serializers.Serializer):
     
     email = serializers.EmailField()
     user_type = serializers.IntegerField()
@@ -97,8 +97,7 @@ class BulkSignUpSerializer(CustomValidationErrorMixin,serializers.Serializer):
 
 
 class ForgetPasswordEmailSerializer(
-    CustomValidationErrorMixin,
-    serializers.Serializer,
+        serializers.Serializer,
 ):
     email = serializers.EmailField(required=True)
 
@@ -123,7 +122,7 @@ class ForgetPasswordEmailSerializer(
         return data
 
 
-class VerifyAccountSerializer(CustomValidationErrorMixin, serializers.Serializer):
+class VerifyAccountSerializer(serializers.Serializer):
     q = serializers.CharField(write_only=True, required=True)
 
     def validate(self, data):
@@ -135,7 +134,7 @@ class VerifyAccountSerializer(CustomValidationErrorMixin, serializers.Serializer
         return data
 
 
-class ResetPasswordEmailSerializer(CustomValidationErrorMixin, serializers.Serializer):
+class ResetPasswordEmailSerializer(serializers.Serializer):
     q = serializers.CharField(write_only=True, required=True)
     password = serializers.CharField(write_only=True, required=True)
 
@@ -147,5 +146,5 @@ class ResetPasswordEmailSerializer(CustomValidationErrorMixin, serializers.Seria
 
 
 # for csv_file
-class CsvFileSerializer(CustomValidationErrorMixin, serializers.Serializer):
+class CsvFileSerializer(serializers.Serializer):
     path = serializers.CharField()

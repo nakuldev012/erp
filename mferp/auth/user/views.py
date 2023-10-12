@@ -45,7 +45,11 @@ class UserSignUpView(APIView):
         """
         try:
             serializer = SignUpSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
+            if not serializer.is_valid(raise_exception=False):
+                err = ""
+                for field, error in serializer.errors.items():
+                    err += "{}: {} ".format(field, ",".join(error))
+                raise ClientErrors(err)
             if Account.objects.filter(email=request.data["email"]):
                 raise ClientErrors(message="Account already exists", response_code=400)
             # password_check = check_password(request.data["password"])
@@ -69,8 +73,8 @@ class UserSignUpView(APIView):
                     "message": "Account Created Successfully",
                     "success": True,
                     "token": enc_token,
-                    "status": status.HTTP_200_OK,
                 },
+                status=status.HTTP_200_OK,
             )
             # else:
             #     raise Exception(password_check)
@@ -79,16 +83,16 @@ class UserSignUpView(APIView):
                 {
                     "message": error.message,
                     "success": False,
-                    "status": error.response_code,
-                }
+                },
+                status=error.response_code,
             )
         except Exception as error:
             return Response(
                 {
                     "message": "Something Went Wrong",
                     "success": False,
-                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                }
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
@@ -130,35 +134,38 @@ class BulkUserSignUpView(APIView):
                     serializer = BulkSignUpSerializer(
                         data=user_data
                     )  # Pass the user_data dictionary to the serializer
-                    if serializer.is_valid():
-                        user = serializer.save()
-                        user_token = get_access_token(user=user)
-                        token = user_token["access_token"]
-                        enc_token = encode_token(token)
-                        # link = BASE_URL + "/v1/verify-account" + "?q=" + enc_token
-                        email = user.email
-                        # password = user.password
-                        user.is_verified = True
-                        password = generate_password()
-                        user.set_password(password)
-                        user.save()
-                        try:
-                            login_credentials(
-                                f"you are successfully registered with us. please login with your registered email id and password given here!!",
-                                email,
-                                password,
-                            )
-                        except:
-                            UserErrors(
-                                message="Please check your Email ID.", response_code=500
-                            )
+                    if not serializer.is_valid(raise_exception=False):
+                        err = ""
+                        for field, error in serializer.errors.items():
+                            err += "{}: {} ".format(field, ",".join(error))
+                        raise ClientErrors(err)
+                    user = serializer.save()
+                    user_token = get_access_token(user=user)
+                    token = user_token["access_token"]
+                    enc_token = encode_token(token)
+                    # link = BASE_URL + "/v1/verify-account" + "?q=" + enc_token
+                    email = user.email
+                    # password = user.password
+                    user.is_verified = True
+                    password = generate_password()
+                    user.set_password(password)
+                    user.save()
+                    try:
+                        login_credentials(
+                            f"you are successfully registered with us. please login with your registered email id and password given here!!",
+                            email,
+                            password,
+                        )
+                    except:
+                        UserErrors(
+                            message="Please check your Email ID.", response_code=500
+                        )
             return Response(
                 {
                     "message": "Account Created Successfully",
                     "success": True,
-                    "status": status.HTTP_200_OK,
-                    # "token": enc_token,
-                }
+                },
+                status=status.HTTP_200_OK,
             )
 
         except UserErrors as error:
@@ -166,16 +173,16 @@ class BulkUserSignUpView(APIView):
                 {
                     "message": error.message,
                     "success": False,
-                    "status": error.response_code,
-                }
+                },
+                status=error.response_code,
             )
         except Exception as error:
             return Response(
                 {
                     "message": "Something Went Wrong",
                     "success": False,
-                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                }
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
@@ -189,7 +196,9 @@ class UserLoginView(APIView):
         """
         try:
             serializer = UserLoginSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
+            if not serializer.is_valid(raise_exception=False):
+                err = " ".join([f"{field}: {', '.join(error)}" for field, error in serializer.errors.items()])
+                raise ClientErrors(err)
             user = serializer.validated_data["user"]
             token = get_access_token(user)
             return Response(
@@ -198,8 +207,8 @@ class UserLoginView(APIView):
                     "is_verified": user.is_verified,
                     "token": token,
                     "success": True,
-                    "status": status.HTTP_200_OK,
-                }
+                },
+                status=status.HTTP_200_OK,
             )
 
         except UserErrors as error:
@@ -207,16 +216,16 @@ class UserLoginView(APIView):
                 {
                     "message": error.message,
                     "success": False,
-                    "status": error.response_code,
-                }
+                },
+                status=error.response_code,
             )
         except Exception as error:
             return Response(
                 {
                     "message": "Something Went Wrong",
                     "success": False,
-                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                }
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
@@ -241,24 +250,24 @@ class UserLogoutView(APIView):
                 {
                     "message": "You are successfully logout",
                     "success": True,
-                    "status": status.HTTP_200_OK,
                 },
+                status=status.HTTP_200_OK,
             )
         except UserErrors as error:
             return Response(
                 {
                     "message": error.message,
                     "success": False,
-                    "status": error.response_code,
-                }
+                },
+                status=error.response_code,
             )
         except Exception as error:
             return Response(
                 {
                     "message": "Something Went Wrong",
                     "success": False,
-                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                }
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
@@ -283,7 +292,9 @@ class VerifyAccountView(APIView):
         """Get Email Code And Verify Account"""
         try:
             serializer = VerifyAccountSerializer(data=request.query_params)
-            serializer.is_valid(raise_exception=True)
+            if not serializer.is_valid(raise_exception=False):
+                err = " ".join([f"{field}: {', '.join(error)}" for field, error in serializer.errors.items()])
+                raise ClientErrors(err)
             user = serializer.validated_data["user"]
             if user.is_verified:
                 raise ClientErrors(
@@ -309,8 +320,8 @@ class VerifyAccountView(APIView):
                     {
                         "message": "Account Verified Successfully",
                         "success": True,
-                        "status": status.HTTP_200_OK,
-                    }
+                    },
+                    status=status.HTTP_200_OK,
                 )
 
         except UserErrors as error:
@@ -318,16 +329,16 @@ class VerifyAccountView(APIView):
                 {
                     "message": error.message,
                     "success": False,
-                    "status": error.response_code,
-                }
+                },
+                status=error.response_code,
             )
         except Exception as error:
             return Response(
                 {
                     "message": "Something Went Wrong",
                     "success": False,
-                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                }
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
@@ -341,7 +352,9 @@ class ForgetPasswordEmailView(APIView):
         """
         try:
             serializer = ForgetPasswordEmailSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
+            if not serializer.is_valid(raise_exception=False):
+                err = " ".join([f"{field}: {', '.join(error)}" for field, error in serializer.errors.items()])
+                raise ClientErrors(err)
             user = serializer.validated_data["user"]
             AccessToken.objects.filter(user=user).delete()
             RefreshToken.objects.filter(user=user).delete()
@@ -355,24 +368,24 @@ class ForgetPasswordEmailView(APIView):
                 {
                     "message": "Account Verification Email Sent Successfully",
                     "success": True,
-                    "status": status.HTTP_200_OK,
                 },
+                status=status.HTTP_200_OK,
             )
         except UserErrors as error:
             return Response(
                 {
                     "message": error.message,
                     "success": False,
-                    "status": error.response_code,
-                }
+                },
+                status=error.response_code,
             )
         except Exception as error:
             return Response(
                 {
                     "message": "Something Went Wrong",
                     "success": False,
-                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                }
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
@@ -396,7 +409,9 @@ class ForgetPasswordVerifyView(APIView):
     def get(self, request: HttpRequest) -> Response:
         try:
             serializer = VerifyAccountSerializer(data=request.query_params)
-            serializer.is_valid(raise_exception=True)
+            if not serializer.is_valid(raise_exception=False):
+                err = " ".join([f"{field}: {', '.join(error)}" for field, error in serializer.errors.items()])
+                raise ClientErrors(err)
             key_code = serializer.validated_data.get("token", "")
             if not is_token_expired(key_code):
                 raise ClientErrors(
@@ -410,8 +425,8 @@ class ForgetPasswordVerifyView(APIView):
                 {
                     "message": "Token is valid you can reset your password",
                     "success": True,
-                    "status": status.HTTP_200_OK,
                 },
+                status=status.HTTP_200_OK,
             )
 
         except UserErrors as error:
@@ -419,16 +434,16 @@ class ForgetPasswordVerifyView(APIView):
                 {
                     "message": error.message,
                     "success": False,
-                    "status": error.response_code,
-                }
+                },
+                status=error.response_code,
             )
         except Exception as error:
             return Response(
                 {
                     "message": "Something Went Wrong",
                     "success": False,
-                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                }
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
@@ -444,7 +459,9 @@ class ResetPasswordView(APIView):
         """
         try:
             serializer = ResetPasswordEmailSerializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
+            if not serializer.is_valid(raise_exception=False):
+                err = " ".join([f"{field}: {', '.join(error)}" for field, error in serializer.errors.items()])
+                raise ClientErrors(err)
             user = serializer.validated_data["user"]
             password_check = check_password(serializer.validated_data["password"])
             if password_check:
@@ -458,24 +475,24 @@ class ResetPasswordView(APIView):
                 {
                     "message": "Password reset successfully",
                     "success": True,
-                    "status": status.HTTP_200_OK,
                 },
+                status=status.HTTP_200_OK,
             )
         except UserErrors as error:
             return Response(
                 {
                     "message": error.message,
                     "success": False,
-                    "status": error.response_code,
-                }
+                },
+                status=error.response_code,
             )
         except Exception as error:
             return Response(
                 {
                     "message": "Something Went Wrong",
                     "success": False,
-                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                }
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
@@ -519,24 +536,24 @@ class ChangePasswordView(APIView):
                     "token": token,
                     "message": "Password reset successfully",
                     "success": True,
-                    "status": status.HTTP_200_OK,
                 },
+                status=status.HTTP_200_OK,
             )
         except UserErrors as error:
             return Response(
                 {
                     "message": error.message,
                     "success": False,
-                    "status": error.response_code,
-                }
+                },
+                status=error.response_code,
             )
         except Exception as error:
             return Response(
                 {
                     "message": "Something Went Wrong",
                     "success": False,
-                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                }
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
@@ -551,24 +568,33 @@ class CsvFileView(APIView):
             data = {"path": csv_file_path}
             serializer = CsvFileSerializer(data=data)
             if serializer.is_valid():
-                return Response(serializer.validated_data)
+                return Response(
+                    {
+                        "data": serializer.validated_data,
+                        "success": True,
+                    },
+                    status=status.HTTP_200_OK,
+                )
             else:
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    {"message": serializer.errors, "success": False},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
         except UserErrors as error:
             return Response(
                 {
                     "message": error.message,
                     "success": False,
-                    "status": error.response_code,
-                }
+                },
+                status=error.response_code,
             )
         except Exception as error:
             return Response(
                 {
                     "message": "Something Went Wrong",
                     "success": False,
-                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                }
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
@@ -591,8 +617,8 @@ class BulkUserSignUpView(APIView):
                 return Response(
                     {
                         "message": "File format not supported. Please upload a CSV file.",
-                        "status": status.HTTP_400_BAD_REQUEST,
                     },
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
 
             # Initialize a list to store responses
@@ -617,8 +643,8 @@ class BulkUserSignUpView(APIView):
                     {
                         "message": error_message,
                         "success": False,
-                        "status": status.HTTP_400_BAD_REQUEST,
-                    }
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
                 )
             csv_file.seek(0)
             csv_data = csv.reader(csv_file.read().decode("utf-8").splitlines())
@@ -642,42 +668,44 @@ class BulkUserSignUpView(APIView):
                     serializer = BulkSignUpSerializer(
                         data=user_data
                     )  # Pass the user_data dictionary to the serializer
-                    if serializer.is_valid():
-                        user = serializer.save()
-                        user_token = get_access_token(user=user)
-                        token = user_token["access_token"]
-                        enc_token = encode_token(token)
-                        # link = BASE_URL + "/v1/verify-account" + "?q=" + enc_token
-                        email = user.email
-                        user.is_verified = True
-                        password = generate_password()
-                        user.set_password(password)
-                        user.save()
-                        try:
-                            login_credentials(
-                                f"you are successfully registered with us. please login with your registered email id and password given here!!",
-                                email,
-                                password,
-                            )
-                        except:
-                            UserErrors(
-                                message="Please check your Email ID.", response_code=500
-                            )
+                    if not serializer.is_valid(raise_exception=False):
+                        err = " ".join([f"{field}: {', '.join(error)}" for field, error in serializer.errors.items()])
+                        raise ClientErrors(err)
+                    user = serializer.save()
+                    user_token = get_access_token(user=user)
+                    token = user_token["access_token"]
+                    enc_token = encode_token(token)
+                    # link = BASE_URL + "/v1/verify-account" + "?q=" + enc_token
+                    email = user.email
+                    user.is_verified = True
+                    password = generate_password()
+                    user.set_password(password)
+                    user.save()
+                    try:
+                        login_credentials(
+                            f"you are successfully registered with us. please login with your registered email id and password given here!!",
+                            email,
+                            password,
+                        )
+                    except:
+                        UserErrors(
+                            message="Please check your Email ID.", response_code=500
+                        )
         except UserErrors as error:
             return Response(
                 {
                     "message": error.message,
                     "success": False,
-                    "status": error.response_code,
-                }
+                },
+                status=error.response_code,
             )
         except Exception as error:
             return Response(
                 {
                     "message": "Something Went Wrong",
                     "success": False,
-                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                }
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 

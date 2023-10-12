@@ -310,11 +310,21 @@ password = env("PASSWORD")
 user = env("USER")
 name = env("NAME")
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'kieterp',
+#         'USER': 'root',
+#         'PASSWORD':'MyStrongPassword1234$',
+#         'HOST':'localhost',
+#         'PORT':'3306',
+#     }
+# }
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'kieterp',
-        'USER': 'root',
+        'NAME': 'abc',
+        'USER': 'harry',
         'PASSWORD':'MyStrongPassword1234$',
         'HOST':'localhost',
         'PORT':'3306',

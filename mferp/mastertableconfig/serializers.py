@@ -1,12 +1,22 @@
 from rest_framework import serializers
 from .models import MasterConfig, Organization, OrgAddress
+from rest_framework import status, response, exceptions, views
+from mferp.common.errors import ClientErrors
 
 
-class MasterConfigSerializer(serializers.ModelSerializer):
+class MasterConfigSerializer( serializers.ModelSerializer,):
     class Meta:
         model = MasterConfig
         exclude = ('created_at', 'updated_at')
 
+    def validate(self, data):
+        if not data.get("label"):
+            raise exceptions.ValidationError('Measurement with this profile name already exists.')
+		
+        if MasterConfig.objects.filter(label=data.get("label","")).exists():
+            raise ClientErrors("This label is already exists")
+
+        return super().validate(data)
     def create(self, validated_data):
         parent=validated_data.get("parent",None)
         

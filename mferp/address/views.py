@@ -21,26 +21,24 @@ class CountryAPIView(generics.GenericAPIView, mixins.ListModelMixin):
                 {
                     "data": CountrySerializer(queryset, many=True).data,
                     "success": True,
-                    "status": status.HTTP_200_OK,
-                }
+                },
+                status=status.HTTP_200_OK,
             )
         except UserErrors as error:
-            return (
-                Response(
+            return Response(
                     {
                         "message": error.message,
                         "success": False,
-                        "status": error.response_code,
-                    }
-                ),
-            )
+                    },
+                    status=error.response_code,
+                )
         except Exception as error:
             return Response(
                 {
                     "message": "Something Went Wrong",
                     "success": False,
-                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
                 },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
@@ -59,24 +57,24 @@ class GetStateAPIView(APIView):
                 {
                     "data": StateSerializer(queryset, many=True).data,
                     "success": True,
-                    "status": status.HTTP_200_OK,
                 },
+                status=status.HTTP_200_OK,
             )
         except UserErrors as error:
             return Response(
-                {
-                    "message": error.message,
-                    "success": False,
-                    "status": error.response_code,
-                }
-            )
+                    {
+                        "message": error.message,
+                        "success": False,
+                    },
+                    status=error.response_code,
+                )
         except Exception as error:
             return Response(
                 {
                     "message": "Something Went Wrong",
                     "success": False,
-                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                }
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
 
@@ -95,22 +93,22 @@ class GetCityAPIView(APIView):
                 {
                     "data": CitySerializer(queryset, many=True).data,
                     "success": True,
-                    "status": status.HTTP_200_OK,
-                }
+                },
+                status=status.HTTP_200_OK,
             )
         except UserErrors as error:
             return Response(
-                {
-                    "message": error.message,
-                    "success": False,
-                    "status": error.response_code,
-                }
-            )
+                    {
+                        "message": error.message,
+                        "success": False,
+                    },
+                    status=error.response_code,
+                )
         except Exception as error:
             return Response(
                 {
                     "message": "Something Went Wrong",
                     "success": False,
-                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                }
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )

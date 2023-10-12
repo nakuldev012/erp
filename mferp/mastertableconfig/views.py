@@ -30,8 +30,9 @@ class CreateCategoryOrSubcategoryView(
                 {
                     "message": "data is updatated ",
                     "success": True,
-                    "status": status.HTTP_200_OK,
+                    
                 },
+                status=status.HTTP_200_OK,
             )
 
         except UserErrors as error:
@@ -39,16 +40,16 @@ class CreateCategoryOrSubcategoryView(
                 {
                     "message": error.message,
                     "success": False,
-                    "status": error.response_code,
-                }
+                },
+                status=error.response_code,
             )
         except Exception as error:
             return Response(
                 {
                     "message": "Something Went Wrong",
                     "success": False,
-                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                }
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
     # def put(self, request, pk=None):
@@ -68,37 +69,31 @@ class CreateCategoryOrSubcategoryView(
         try:
             data = request.data
             serializer = MasterConfigSerializer(data=data)
-            if serializer.is_valid():
-                serializer.save()
-                return Response(
-                    {"message": "Category is Successfully Created", "success": True},
-                    status=status.HTTP_201_CREATED,
-                )
-
+            if not serializer.is_valid(raise_exception=False):
+                err = " ".join([f"{field}: {', '.join(error)}" for field, error in serializer.errors.items()])
+                raise ClientErrors(err)
+           
+            serializer.save()
             return Response(
-                {
-                    "data": serializer.errors,
-                    "success": False,
-                    "status": status.HTTP_400_BAD_REQUEST,
-                },
+                {"message": "Category is Successfully Created", "success": True},
+                status=status.HTTP_201_CREATED,
             )
         except UserErrors as error:
             return Response(
                 {
                     "message": error.message,
                     "success": False,
-                    "status": error.response_code,
-                }
+                },
+                status=error.response_code,
             )
         except Exception as error:
             return Response(
                 {
                     "message": "Something Went Wrong",
                     "success": False,
-                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                }
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
 
 class OrganizationView(
     generics.GenericAPIView, mixins.ListModelMixin, mixins.UpdateModelMixin
@@ -374,8 +369,8 @@ class OrganizationView(
                 {
                     "message": "Organisation Successfully Created",
                     "success": True,
-                    "status": status.HTTP_201_CREATED,
-                }
+                },
+                status = status.HTTP_201_CREATED,
             )
 
         except UserErrors as error:
@@ -383,14 +378,14 @@ class OrganizationView(
                 {
                     "message": error.message,
                     "success": False,
-                    "status": error.response_code,
-                }
+                },
+                status=error.response_code,
             )
         except Exception as error:
             return Response(
                 {
                     "message": "Something Went Wrong",
                     "success": False,
-                    "status": status.HTTP_500_INTERNAL_SERVER_ERROR,
-                }
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
