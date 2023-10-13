@@ -99,93 +99,6 @@ class UserSignUpView(APIView):
 # for bulk user registration via csv file
 
 
-class BulkUserSignUpView(APIView):
-    parser_classes = (FileUploadParser,)
-
-    def post(self, request):
-        try:
-            csv_file = request.data.get("file")
-            if not csv_file:
-                return Response(
-                    {"error": "CSV file not provided"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            csv_data = csv.reader(csv_file.read().decode("utf-8").splitlines())
-            # responses = []
-            for row in csv_data:
-                if len(row) == 5 and row[0] != "email":
-                    try:
-                        # Convert 'user_type' from string to integer
-                        user_type = int(row[1])
-                    except ValueError:
-                        user_type = None
-
-                    user_data = {
-                        "email": row[0],  # Assuming email is the first column
-                        # Check if the second column exists before accessing it
-                        "user_type": user_type,
-                        "first_name": row[2],  # Assuming first_name is the third column
-                        "last_name": row[3],  # Assuming last_name is the fourth column
-                        "phone_number": row[
-                            4
-                        ],  # Assuming phone_number is the fifth column
-                    }
-
-                    serializer = BulkSignUpSerializer(
-                        data=user_data
-                    )  # Pass the user_data dictionary to the serializer
-                    if not serializer.is_valid(raise_exception=False):
-                        err = ""
-                        for field, error in serializer.errors.items():
-                            err += "{}: {} ".format(field, ",".join(error))
-                        raise ClientErrors(err)
-                    user = serializer.save()
-                    user_token = get_access_token(user=user)
-                    token = user_token["access_token"]
-                    enc_token = encode_token(token)
-                    # link = BASE_URL + "/v1/verify-account" + "?q=" + enc_token
-                    email = user.email
-                    # password = user.password
-                    user.is_verified = True
-                    password = generate_password()
-                    user.set_password(password)
-                    user.save()
-                    try:
-                        login_credentials(
-                            f"you are successfully registered with us. please login with your registered email id and password given here!!",
-                            email,
-                            password,
-                        )
-                    except:
-                        UserErrors(
-                            message="Please check your Email ID.", response_code=500
-                        )
-            return Response(
-                {
-                    "message": "Account Created Successfully",
-                    "success": True,
-                },
-                status=status.HTTP_200_OK,
-            )
-
-        except UserErrors as error:
-            return Response(
-                {
-                    "message": error.message,
-                    "success": False,
-                },
-                status=error.response_code,
-            )
-        except Exception as error:
-            return Response(
-                {
-                    "message": "Something Went Wrong",
-                    "success": False,
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
-
 class UserLoginView(APIView):
     def post(self, request):
         """
@@ -668,9 +581,7 @@ class BulkUserSignUpView(APIView):
                     serializer = BulkSignUpSerializer(
                         data=user_data
                     )  # Pass the user_data dictionary to the serializer
-                    if not serializer.is_valid(raise_exception=False):
-                        err = " ".join([f"{field}: {', '.join(error)}" for field, error in serializer.errors.items()])
-                        raise ClientErrors(err)
+                    serializer.is_valid(raise_exception=True)
                     user = serializer.save()
                     user_token = get_access_token(user=user)
                     token = user_token["access_token"]
@@ -691,6 +602,13 @@ class BulkUserSignUpView(APIView):
                         UserErrors(
                             message="Please check your Email ID.", response_code=500
                         )
+            return Response(
+                {
+                    "message": "Account Created Successfully",
+                    "success": True,
+                },
+                status=status.HTTP_200_OK,
+            )
         except UserErrors as error:
             return Response(
                 {
