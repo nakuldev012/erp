@@ -24,14 +24,6 @@ class CountryAPIView(generics.GenericAPIView, mixins.ListModelMixin):
                 },
                 status=status.HTTP_200_OK,
             )
-        except UserErrors as error:
-            return Response(
-                    {
-                        "message": error.message,
-                        "success": False,
-                    },
-                    status=error.response_code,
-                )
         except Exception as error:
             return Response(
                 {
