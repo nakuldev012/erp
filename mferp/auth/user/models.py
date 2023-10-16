@@ -105,13 +105,13 @@ class Account(AbstractBaseUser, PermissionsMixin):
     """
 
     email = models.EmailField(
-        "Email Address", max_length=255, unique=True, null=False, blank=False
+        "Email Address", max_length=255, unique=True
     )
     user_type = models.ForeignKey(
-        "mastertableconfig.MasterConfig", on_delete=models.CASCADE, related_name="account_masterconfig", null=True, blank=True
+        "mastertableconfig.MasterConfig", on_delete=models.CASCADE, related_name="account_masterconfig"
     )
-    first_name = models.CharField("First Name", max_length=250, null=False, blank=False)
-    last_name = models.CharField("Last Name", max_length=250, null=False, blank=False)
+    first_name = models.CharField("First Name", max_length=250)
+    last_name = models.CharField("Last Name", max_length=250)
     phone_number = models.CharField(
         validators=[phone_validator], max_length=17, blank=True
     )

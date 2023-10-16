@@ -48,7 +48,7 @@ class Organization(AbstractTime):
     affiliated_university = models.ForeignKey(
         "mastertableconfig.MasterConfig",
         on_delete=models.CASCADE,
-        related_name="org_masterconfig_aff_univ",
+        related_name="org_masterconfig_aff_univ",null=True, blank=True
     )
     parent = models.ForeignKey(
         "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children"
@@ -94,20 +94,20 @@ class Organization(AbstractTime):
 
 
 class OrgAddress(BaseAddress):
-    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name="orgaddress_organization", null=True, blank=True)
+    organization = models.ForeignKey(Organization, on_delete=models.CASCADE, related_name="orgaddress_organization")
     region = models.ForeignKey(
         "mastertableconfig.MasterConfig",
         on_delete=models.CASCADE,
-        related_name="orgaddress_region",null=True, blank=True
+        related_name="orgaddress_region"
     )
     
     email = models.EmailField(
         "Email Address",
         max_length=255,
-        unique=True,null=True, blank=True
+        unique=True
     )
     web_address = models.CharField("Web Address", max_length=255, null=True, blank=True)
     contact_number = models.CharField(
         validators=[phone_validator], max_length=17, null=True, blank=True
     )
-    phone_number = models.CharField(validators=[phone_validator], max_length=17, null=True, blank=True)
+    phone_number = models.CharField(validators=[phone_validator], max_length=17)
