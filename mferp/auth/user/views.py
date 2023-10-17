@@ -70,7 +70,7 @@ class UserSignUpView(APIView):
                 UserErrors(message="Please check your Email ID.", response_code=500)
             return Response(
                 {
-                    "message": "Account Created Successfully",
+                    "message": "Account Created Successfully,and a verification link has been sent on email.",
                     "success": True,
                     "token": enc_token,
                 },
@@ -215,7 +215,7 @@ class VerifyAccountView(APIView):
                 email = user.email
                 try:
                     login_credentials(
-                        f"your account is verified. please login with your registered email id and password given here!!",
+                        f"your account is verified. please login with your Login credentials for ERP!!",
                         email,
                         password,
                     )
@@ -507,7 +507,6 @@ class CsvFileView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-
 class BulkUserSignUpView(APIView):
     def post(self, request):
         try:
@@ -531,10 +530,6 @@ class BulkUserSignUpView(APIView):
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
-            # Initialize a list to store responses
-            # responses = []
-
-            # Read the CSV file and process each row
             csv_data = csv.reader(csv_file.read().decode("utf-8").splitlines())
             existing_emails = set(
                 Account.objects.values_list("email", flat=True)
@@ -546,6 +541,20 @@ class BulkUserSignUpView(APIView):
                     email = row[0]
                     if email in existing_emails:
                         duplicate_email_count += 1
+                    try:
+                        user_type = int(row[1])
+                    except ValueError:
+                        user_type = None
+                    try:
+                        master_config_instance = MasterConfig.objects.get(id=user_type)
+                    except MasterConfig.DoesNotExist:
+                        return Response(
+                        {
+                            "message": "invalid user_type. please check and reupload csv!",
+                            "success": False,
+                        },
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )   
 
             if duplicate_email_count > 0:
                 error_message = f"{duplicate_email_count} email(s) already registered in the CSV file."
@@ -571,9 +580,7 @@ class BulkUserSignUpView(APIView):
                         "user_type": user_type,  # Assuming user_type is the second column
                         "first_name": row[2],  # Assuming first_name is the third column
                         "last_name": row[3],  # Assuming last_name is the fourth column
-                        "phone_number": row[
-                            4
-                        ],  # Assuming phone_number is the fifth column
+                        "phone_number": row[4],  # Assuming phone_number is the fifth column
                     }
                     serializer = BulkSignUpSerializer(
                         data=user_data
