@@ -5,7 +5,7 @@ from rest_framework.parsers import FileUploadParser
 from django.http import HttpRequest, HttpResponseRedirect
 from django.db.models import Q
 from django.contrib.auth import authenticate
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 import requests
 from mferp.common.functions import check_password, generate_password
@@ -317,6 +317,7 @@ class ForgetPasswordVerifyView(APIView):
             if not serializer.is_valid(raise_exception=False):
                 err = " ".join([f"{field}: {', '.join(error)}" for field, error in serializer.errors.items()])
                 raise ClientErrors(err)
+            token = request.query_params.get("q")
             key_code = serializer.validated_data.get("token", "")
             if not is_token_expired(key_code):
                 raise ClientErrors(
@@ -324,15 +325,17 @@ class ForgetPasswordVerifyView(APIView):
                     response_code=404,
                 )
             # Add redirect code to the reset password template
+            url = f'http://localhost:3000/authentication/forgotPassword/createnewPassword?q={token}'
+            return redirect(url)
             # url = reverse('v1/reset-password/')
             # HttpResponseRedirect(url)
-            return Response(
-                {
-                    "message": "Token is valid you can reset your password",
-                    "success": True,
-                },
-                status=status.HTTP_200_OK,
-            )
+            # return Response(
+            #     {
+            #         "message": "Token is valid you can reset your password",
+            #         "success": True,
+            #     },
+            #     status=status.HTTP_200_OK,
+            # )
 
         except UserErrors as error:
             return Response(
