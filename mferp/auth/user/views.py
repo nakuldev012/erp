@@ -221,7 +221,7 @@ class VerifyAccountView(APIView):
                     )
                 except:
                     UserErrors(message="Please check your Email ID.", response_code=500)
-                url = f'http://localhost:3000/userForm/emailVerification'
+                url = f'http://localhost:3000/emailVerification'
                 return redirect(url)
                 # return Response(
                 #     {
