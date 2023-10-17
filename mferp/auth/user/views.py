@@ -221,13 +221,15 @@ class VerifyAccountView(APIView):
                     )
                 except:
                     UserErrors(message="Please check your Email ID.", response_code=500)
-                return Response(
-                    {
-                        "message": "Account Verified Successfully",
-                        "success": True,
-                    },
-                    status=status.HTTP_200_OK,
-                )
+                url = f'http://localhost:3000/userForm/emailVerification'
+                return redirect(url)
+                # return Response(
+                #     {
+                #         "message": "Account Verified Successfully",
+                #         "success": True,
+                #     },
+                #     status=status.HTTP_200_OK,
+                # )
 
         except UserErrors as error:
             return Response(
