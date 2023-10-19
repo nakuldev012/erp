@@ -232,21 +232,25 @@ class VerifyAccountView(APIView):
                 # )
 
         except UserErrors as error:
-            return Response(
-                {
-                    "message": error.message,
-                    "success": False,
-                },
-                status=error.response_code,
-            )
+            url = f'http://localhost:3000/emailVerification/error'
+            return redirect(url)
+            # return Response(
+            #     {
+            #         "message": error.message,
+            #         "success": False,
+            #     },
+            #     status=error.response_code,
+            # )
         except Exception as error:
-            return Response(
-                {
-                    "message": "Something Went Wrong",
-                    "success": False,
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+            url = f'http://localhost:3000/emailVerification/error'
+            return redirect(url)
+            # return Response(
+            #     {
+            #         "message": "Something Went Wrong",
+            #         "success": False,
+            #     },
+            #     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            # )
 
 
 class ForgetPasswordEmailView(APIView):
@@ -598,7 +602,7 @@ class BulkUserSignUpView(APIView):
                     user.save()
                     try:
                         login_credentials(
-                            f"you are successfully registered with us. please login with your registered email id and password given here!!",
+                            f"you are successfully registered with us. please login with your Login credentials for ERP!!",
                             email,
                             password,
                         )
