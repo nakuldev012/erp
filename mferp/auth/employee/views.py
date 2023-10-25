@@ -15,7 +15,7 @@ class EmployeelistView(
     mixins.ListModelMixin,
 ):
     serializer_class = EmployeeSerializer
-    permission_class = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     queryset = Employee.objects.all()
 
     # group_required('hr_configuration')

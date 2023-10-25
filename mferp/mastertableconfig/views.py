@@ -20,7 +20,7 @@ class CreateCategoryOrSubcategoryView(
     generics.GenericAPIView, mixins.ListModelMixin, mixins.UpdateModelMixin
 ):
     serializer_class = MasterConfigSerializer
-    # permission_class = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     queryset = MasterConfig.objects.all()
 
     def patch(self, request, pk=None):
@@ -30,7 +30,6 @@ class CreateCategoryOrSubcategoryView(
                 {
                     "message": "data is updatated ",
                     "success": True,
-                    
                 },
                 status=status.HTTP_200_OK,
             )
@@ -62,9 +61,14 @@ class CreateCategoryOrSubcategoryView(
             data = request.data
             serializer = MasterConfigSerializer(data=data)
             if not serializer.is_valid(raise_exception=False):
-                err = " ".join([f"{field}: {', '.join(error)}" for field, error in serializer.errors.items()])
+                err = " ".join(
+                    [
+                        f"{field}: {', '.join(error)}"
+                        for field, error in serializer.errors.items()
+                    ]
+                )
                 raise ClientErrors(err)
-           
+
             serializer.save()
             return Response(
                 {"message": "Category is Successfully Created", "success": True},
@@ -87,11 +91,12 @@ class CreateCategoryOrSubcategoryView(
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+
 class OrganizationView(
     generics.GenericAPIView, mixins.ListModelMixin, mixins.UpdateModelMixin
 ):
     serializer_class = OrganizationSerializer
-    # permission_class = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
     queryset = Organization.objects.all()
 
     def get(self, request, *args, **kwargs):
@@ -362,7 +367,7 @@ class OrganizationView(
                     "message": "Organisation Successfully Created",
                     "success": True,
                 },
-                status = status.HTTP_201_CREATED,
+                status=status.HTTP_201_CREATED,
             )
 
         except UserErrors as error:
@@ -373,11 +378,11 @@ class OrganizationView(
                 },
                 status=error.response_code,
             )
-        except Exception as error:
-            return Response(
-                {
-                    "message": "Something Went Wrong",
-                    "success": False,
-                },
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
+        # except Exception as error:
+        #     return Response(
+        #         {
+        #             "message": "Something Went Wrong",
+        #             "success": False,
+        #         },
+        #         status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        #     )

@@ -110,7 +110,12 @@ class UserLoginView(APIView):
         try:
             serializer = UserLoginSerializer(data=request.data)
             if not serializer.is_valid(raise_exception=False):
-                err = " ".join([f"{field}: {', '.join(error)}" for field, error in serializer.errors.items()])
+                err = " ".join(
+                    [
+                        f"{field}: {', '.join(error)}"
+                        for field, error in serializer.errors.items()
+                    ]
+                )
                 raise ClientErrors(err)
             user = serializer.validated_data["user"]
             token = get_access_token(user)
@@ -198,15 +203,22 @@ class VerifyAccountView(APIView):
         try:
             serializer = VerifyAccountSerializer(data=request.query_params)
             if not serializer.is_valid(raise_exception=False):
-                err = " ".join([f"{field}: {', '.join(error)}" for field, error in serializer.errors.items()])
+                err = " ".join(
+                    [
+                        f"{field}: {', '.join(error)}"
+                        for field, error in serializer.errors.items()
+                    ]
+                )
                 raise ClientErrors(err)
             user = serializer.validated_data["user"]
             if user.is_verified:
-                raise ClientErrors(
-                    message="Your Account is Already Verified.",
-                    error_message=str(user.email),
-                    response_code=400,
-                )
+                url = f"http://localhost:3000/emailVerification/already"
+                return redirect(url)
+                # raise ClientErrors(
+                #     message="Your Account is Already Verified.",
+                #     error_message=str(user.email),
+                #     response_code=400,
+                # )
             else:
                 user.is_verified = True
                 password = generate_password()
@@ -221,7 +233,7 @@ class VerifyAccountView(APIView):
                     )
                 except:
                     UserErrors(message="Please check your Email ID.", response_code=500)
-                url = f'http://localhost:3000/emailVerification'
+                url = f"http://localhost:3000/emailVerification/pending"
                 return redirect(url)
                 # return Response(
                 #     {
@@ -232,7 +244,7 @@ class VerifyAccountView(APIView):
                 # )
 
         except UserErrors as error:
-            url = f'http://localhost:3000/emailVerification/error'
+            url = f"http://localhost:3000/emailVerification/error"
             return redirect(url)
             # return Response(
             #     {
@@ -242,7 +254,7 @@ class VerifyAccountView(APIView):
             #     status=error.response_code,
             # )
         except Exception as error:
-            url = f'http://localhost:3000/emailVerification/error'
+            url = f"http://localhost:3000/emailVerification/error"
             return redirect(url)
             # return Response(
             #     {
@@ -264,7 +276,12 @@ class ForgetPasswordEmailView(APIView):
         try:
             serializer = ForgetPasswordEmailSerializer(data=request.data)
             if not serializer.is_valid(raise_exception=False):
-                err = " ".join([f"{field}: {', '.join(error)}" for field, error in serializer.errors.items()])
+                err = " ".join(
+                    [
+                        f"{field}: {', '.join(error)}"
+                        for field, error in serializer.errors.items()
+                    ]
+                )
                 raise ClientErrors(err)
             user = serializer.validated_data["user"]
             AccessToken.objects.filter(user=user).delete()
@@ -321,7 +338,12 @@ class ForgetPasswordVerifyView(APIView):
         try:
             serializer = VerifyAccountSerializer(data=request.query_params)
             if not serializer.is_valid(raise_exception=False):
-                err = " ".join([f"{field}: {', '.join(error)}" for field, error in serializer.errors.items()])
+                err = " ".join(
+                    [
+                        f"{field}: {', '.join(error)}"
+                        for field, error in serializer.errors.items()
+                    ]
+                )
                 raise ClientErrors(err)
             token = request.query_params.get("q")
             key_code = serializer.validated_data.get("token", "")
@@ -331,7 +353,7 @@ class ForgetPasswordVerifyView(APIView):
                     response_code=404,
                 )
             # Add redirect code to the reset password template
-            url = f'http://localhost:3000/authentication/forgotPassword/createnewPassword?q={token}'
+            url = f"http://localhost:3000/authentication/forgotPassword/createnewPassword?q={token}"
             return redirect(url)
             # url = reverse('v1/reset-password/')
             # HttpResponseRedirect(url)
@@ -362,7 +384,7 @@ class ForgetPasswordVerifyView(APIView):
 
 
 class ResetPasswordView(APIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def post(self, request: HttpRequest) -> Response:
         """
@@ -374,7 +396,12 @@ class ResetPasswordView(APIView):
         try:
             serializer = ResetPasswordEmailSerializer(data=request.data)
             if not serializer.is_valid(raise_exception=False):
-                err = " ".join([f"{field}: {', '.join(error)}" for field, error in serializer.errors.items()])
+                err = " ".join(
+                    [
+                        f"{field}: {', '.join(error)}"
+                        for field, error in serializer.errors.items()
+                    ]
+                )
                 raise ClientErrors(err)
             user = serializer.validated_data["user"]
             password_check = check_password(serializer.validated_data["password"])
@@ -472,7 +499,7 @@ class ChangePasswordView(APIView):
 
 
 class CsvFileView(APIView):
-    # permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated]
 
     def get(self, request):
         try:
@@ -511,7 +538,10 @@ class CsvFileView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+
 class BulkUserSignUpView(APIView):
+    permission_classes = [IsAuthenticated]
+
     def post(self, request):
         try:
             # Check if the 'file' key is in request.FILES
@@ -553,12 +583,12 @@ class BulkUserSignUpView(APIView):
                         master_config_instance = MasterConfig.objects.get(id=user_type)
                     except MasterConfig.DoesNotExist:
                         return Response(
-                        {
-                            "message": "invalid user_type. please check and reupload csv!",
-                            "success": False,
-                        },
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )   
+                            {
+                                "message": "invalid user_type. please check and reupload csv!",
+                                "success": False,
+                            },
+                            status=status.HTTP_400_BAD_REQUEST,
+                        )
 
             if duplicate_email_count > 0:
                 error_message = f"{duplicate_email_count} email(s) already registered in the CSV file."
@@ -584,7 +614,9 @@ class BulkUserSignUpView(APIView):
                         "user_type": user_type,  # Assuming user_type is the second column
                         "first_name": row[2],  # Assuming first_name is the third column
                         "last_name": row[3],  # Assuming last_name is the fourth column
-                        "phone_number": row[4],  # Assuming phone_number is the fifth column
+                        "phone_number": row[
+                            4
+                        ],  # Assuming phone_number is the fifth column
                     }
                     serializer = BulkSignUpSerializer(
                         data=user_data
