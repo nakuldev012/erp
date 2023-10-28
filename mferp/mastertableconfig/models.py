@@ -1,6 +1,7 @@
 from django.db import models
 from mferp.common.validators import phone_validator
 from mferp.address.models import BaseAddress
+from mferp.upload.models import UploadedFile
 
 
 class AbstractTime(models.Model):
@@ -111,3 +112,14 @@ class OrgAddress(BaseAddress):
         validators=[phone_validator], max_length=17, null=True, blank=True
     )
     phone_number = models.CharField(validators=[phone_validator], max_length=17)
+
+
+class Test(models.Model):
+    name = models.CharField(max_length=100)
+    cover_image = models.ForeignKey(
+        UploadedFile,
+        on_delete=models.CASCADE,
+        related_name="test_uploadedfile",
+        null=True,
+        blank=True,
+    )

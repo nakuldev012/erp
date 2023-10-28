@@ -25,6 +25,17 @@ class UserErrors(Exception):
         self.response_code = response_code if response_code else 400
         self.type = "User Errors"
 
+class ForbiddenErrors(UserErrors):
+    """
+    Error Exception
+    """
+
+    def __init__(self, message=None, error_message=None, response_code=None):
+        self.message = message if message else "You do not have permission to perform this action."
+        self.error_message = error_message if error_message else ""
+        self.response_code = response_code if response_code else 403
+        self.type = "Forbidden Errors"
+
 
 class ClientErrors(UserErrors):
     """

@@ -3,7 +3,7 @@ from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
 from django.forms import ValidationError
 from django.contrib.auth.models import PermissionsMixin
 from mferp.common.validators import phone_validator
-from mferp.mastertableconfig.models import MasterConfig, AbstractTime
+from mferp.mastertableconfig.models import MasterConfig
 
 
 

@@ -51,6 +51,7 @@ CUSTOM_APP = [
     'mferp.apps.DropsdownConfig',
     'mferp.apps.EmployeeConfig',
     'mferp.apps.AddressConfig',
+    'mferp.apps.UploadConfig',
     
     # 'mferp.auth.user',
     'django_extensions',

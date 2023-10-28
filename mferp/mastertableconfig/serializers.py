@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import MasterConfig, Organization, OrgAddress
+from .models import MasterConfig, Organization, OrgAddress, Test
 from rest_framework import status, response, exceptions, views
 from mferp.common.errors import ClientErrors
 
@@ -63,4 +63,9 @@ class OrganizationSerializer(serializers.ModelSerializer):
 class OrgAddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrgAddress
+
+class TestSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Test
+
 

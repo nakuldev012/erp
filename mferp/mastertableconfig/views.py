@@ -3,11 +3,12 @@ from rest_framework.response import Response
 from rest_framework import status
 
 from mferp.address.models import Country, State, City
-from .models import MasterConfig, OrgAddress, Organization
+from .models import MasterConfig, OrgAddress, Organization, Test
+from mferp.upload.models import UploadedFile
 from .serializers import (
     MasterConfigSerializer,
     OrganizationSerializer,
-    OrgAddressSerializer,
+    OrgAddressSerializer,TestSerializer
 )
 from rest_framework import generics, mixins
 from mferp.common.errors import ClientErrors, DatabaseErrors, UserErrors
@@ -378,11 +379,80 @@ class OrganizationView(
                 },
                 status=error.response_code,
             )
-        # except Exception as error:
-        #     return Response(
-        #         {
-        #             "message": "Something Went Wrong",
-        #             "success": False,
-        #         },
-        #         status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        #     )
+        except Exception as error:
+            return Response(
+                {
+                    "message": "Something Went Wrong",
+                    "success": False,
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+class TestView(
+    generics.GenericAPIView,
+    mixins.ListModelMixin,
+):
+    serializer_class = TestSerializer
+    # permission_classes = [IsAuthenticated]
+    queryset = UploadedFile.objects.all()
+
+    # group_required('hr_configuration')
+    # @group_required('hr_configuration')
+    # def get(self, request, *args, **kwargs):
+    #     try:
+    #         if not "pk" in kwargs:
+    #             return self.list(request)
+    #         post = get_object_or_404(Employee, pk=kwargs["pk"])
+    #         return Response(
+    #             {
+    #                 "data": EmployeeSerializer(post).data,
+    #                 "success": True,
+    #             },
+    #             status=status.HTTP_200_OK,
+    #         )
+    #     except Exception as error:
+    #         return Response(
+    #             {
+    #                 "message": "Something Went Wrong",
+    #                 "success": False,
+    #             },
+    #             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    #         )
+
+    def post(self, request):
+        try:
+            data = request.data
+            # serializer = TestSerializer(data=data)
+            # if "name" or "image" not in request.data:
+            #     raise ClientErrors("All Fields are required")
+            image = data["image"]
+            name = data["name"]
+            print(name,image)
+            obj = UploadedFile.objects.create(upload=image) 
+            obj2 = Test.objects.create(name=name, cover_image=obj)
+            # if serializer.is_valid():
+            #     post = serializer.save()
+            return Response(
+                {
+                    "message": "Employee Successfully Created",
+                    "success": True,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except UserErrors as error:
+            return Response(
+                {
+                    "message": error.message,
+                    "success": False,
+                },
+                status=error.response_code,
+            )
+        except Exception as error:
+            return Response(
+                {
+                    "message": "Something Went Wrong",
+                    "success": False,
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        

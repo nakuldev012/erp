@@ -384,7 +384,7 @@ class ForgetPasswordVerifyView(APIView):
 
 
 class ResetPasswordView(APIView):
-    permission_classes = [IsAuthenticated]
+    # permission_classes = [IsAuthenticated]
 
     def post(self, request: HttpRequest) -> Response:
         """
@@ -499,7 +499,7 @@ class ChangePasswordView(APIView):
 
 
 class CsvFileView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, ]
 
     def get(self, request):
         try:
