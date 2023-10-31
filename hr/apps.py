@@ -1,0 +1,1 @@
+from .hrconfig.apps import HrTableConfig

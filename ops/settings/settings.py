@@ -49,10 +49,10 @@ CUSTOM_APP = [
     'mferp.apps.MasterTableConfig',
     'mferp.apps.UserConfig',
     'mferp.apps.DropsdownConfig',
-    'mferp.apps.EmployeeConfig',
     'mferp.apps.AddressConfig',
     'mferp.apps.UploadConfig',
-    
+    'hr.apps.HrTableConfig',
+    'employee.apps.ProfileConfig',
     # 'mferp.auth.user',
     'django_extensions',
 ]

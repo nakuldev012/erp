@@ -43,7 +43,7 @@ class BaseAddress(models.Model):
         default="permanent",)
 	address = models.TextField()
 	landmark = models.CharField(max_length=400, null=True, blank=True)
-	city = models.ForeignKey(City, on_delete=models.CASCADE, related_name="baseadress_city")
+	city = models.ForeignKey(City, on_delete=models.CASCADE, )
 	zip = models.PositiveIntegerField(validators=[validate_zip])
     
 	class Meta:
