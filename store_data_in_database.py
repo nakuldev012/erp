@@ -9,7 +9,7 @@ db_config = {
     "host": "localhost",
     "user": "harry",
     "password": "MyStrongPassword1234$",
-    "database": "abc",
+    "database": "kieterp2",
 }
 
 # Connect to the database
@@ -18,7 +18,7 @@ try:
     cursor = conn.cursor()
 
     # Read the JSON data from the file
-    with open("erp_backend/mastertableconfig_masterconfig.json", "r") as json_file:
+    with open("erp_backend/hrconfig_hrconfig.json", "r") as json_file:
         data = json.load(json_file)
 
     # Assuming you want to insert the data into a table named "your_table"

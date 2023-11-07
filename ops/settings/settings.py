@@ -114,7 +114,7 @@ name = env("NAME")
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'abc',
+        'NAME': 'kieterp2',
         'USER': 'harry',
         'PASSWORD':'MyStrongPassword1234$',
         'HOST':'localhost',

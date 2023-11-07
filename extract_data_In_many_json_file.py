@@ -4,9 +4,9 @@ import json
 # Database connection configuration
 db_config = {
     "host": "localhost",
-    "user": "root",
+    "user": "harry",
     "password": "MyStrongPassword1234$",
-    "database": "kieterp",
+    "database": "kieterp2",
 }
 
 # Connect to the database
@@ -16,7 +16,7 @@ try:
 
     # Get a list of all tables in the database
     cursor.execute("SHOW TABLES")
-    tables = [table['Tables_in_kieterp'] for table in cursor.fetchall()]
+    tables = [table['Tables_in_kieterp2'] for table in cursor.fetchall()]
 
     # Extract data from each table and write to JSON files
     for table in tables:

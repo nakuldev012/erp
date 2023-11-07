@@ -9,53 +9,53 @@ from mferp.upload.models import UploadedFile
 
 
 class PrimaryEmpInfo(AbstractTime):
-    user = models.OneToOneField(
+    user_id = models.OneToOneField(
         Account, on_delete=models.CASCADE, related_name="primempinfo_account"
     )
     parent_org = models.ForeignKey(
-        Organization, on_delete=models.CASCADE, related_name="primempinfo_org"
+        Organization, on_delete=models.CASCADE, related_name="primempinfo_org", null=True, blank=True
     )
     child_org = models.ManyToManyField(
         Organization, related_name="primempinfo_child_org", null=True, blank=True
     )
-    emp_type = models.ForeignKey(
-        HrConfig, on_delete=models.CASCADE, related_name="primempinfo_hrconfig_emp_type"
+    type_of_employment = models.ForeignKey(
+        HrConfig, on_delete=models.CASCADE, related_name="primempinfo_hrconfig_emp_type", null=True, blank=True
     )
     probation_end_date = models.DateTimeField(null=True, blank=True)
-    emp_category = models.ForeignKey(
+    category_of_employee = models.ForeignKey(
         HrConfig,
         on_delete=models.CASCADE,
-        related_name="primempinfo_hrconfig_emp_category",
+        related_name="primempinfo_hrconfig_emp_category",null=True, blank=True
     )
     designation = models.ForeignKey(
         HrConfig,
         on_delete=models.CASCADE,
-        related_name="primempinfo_hrconfig_designation",
+        related_name="primempinfo_hrconfig_designation",null=True, blank=True
     )
     cadre = models.ForeignKey(
-        HrConfig, on_delete=models.CASCADE, related_name="primempinfo_hrconfig_cadre"
+        HrConfig, on_delete=models.CASCADE, related_name="primempinfo_hrconfig_cadre", null=True, blank=True
     )
     ladder = models.ForeignKey(
-        HrConfig, on_delete=models.CASCADE, related_name="primempinfo_hrconfig_ladder"
+        HrConfig, on_delete=models.CASCADE, related_name="primempinfo_hrconfig_ladder", null=True, blank=True
     )
     shift = models.ForeignKey(
-        HrConfig, on_delete=models.CASCADE, related_name="primempinfo_hrconfig_shift"
+        HrConfig, on_delete=models.CASCADE, related_name="primempinfo_hrconfig_shift", null=True, blank=True
     )
-    is_verified = models.BooleanField(
+    isVerified = models.BooleanField(
         "Verified", default=False
     )
 
-    def __str__(self):
-        return self.user.email
+    # def __str__(self):
+    #     return self.user_id.email
 
 
 class BasicEmpInfo(AbstractTime):
-    employee = models.OneToOneField(
+    emp_id = models.OneToOneField(
         PrimaryEmpInfo,
         on_delete=models.CASCADE,
         related_name="basicempinfo_primempinfo",
     )
-    emp_id = models.CharField(
+    emp_code = models.CharField(
         "Employee ID", max_length=100, null=True, blank=True, unique=True
     )
     title = models.ForeignKey(
@@ -64,24 +64,24 @@ class BasicEmpInfo(AbstractTime):
     department = models.ManyToManyField(
         MasterConfig, related_name="basicempinfo_department"
     )
-    date_of_birth = models.DateTimeField()
-    date_of_joining = models.DateTimeField(auto_now_add=True)
+    dob = models.DateTimeField()
+    doj = models.DateTimeField(auto_now_add=True)
     additional_responsibility = models.ManyToManyField(
         HrConfig,
         related_name="basicempinfo_hrconfig",
         null=True,
         blank=True,
     )
-    is_verified = models.BooleanField(
+    isVerified = models.BooleanField(
         "Verified", default=False
     )
 
     def __str__(self):
-        return self.employee.user.email
+        return self.emp_id.user_id.email
 
 
 class PersonalEmpInfo(AbstractTime):
-    employee = models.OneToOneField(
+    emp_id = models.OneToOneField(
         PrimaryEmpInfo,
         on_delete=models.CASCADE,
         related_name="personalempinfo_primempinfo",
@@ -127,19 +127,19 @@ class PersonalEmpInfo(AbstractTime):
     office_email = models.EmailField(
         "Official Email Address", null=True, blank=True, unique=True
     )
-    alternative_mobile = models.CharField(
+    alternative_mobile_number = models.CharField(
         validators=[phone_validator], blank=True, null=True, unique=True, max_length=15
     )
     emergency_contact_name = models.CharField(max_length=250)
-    emergency_contact_mobile = models.CharField(validators=[phone_validator], max_length=15)
+    emergency_contact_mobile_number = models.CharField(validators=[phone_validator], max_length=15)
     relationship = models.ForeignKey(
         MasterConfig,
         on_delete=models.CASCADE,
         related_name="personalempinfo_masterconfig_relationship",
     )
-    no_of_son = models.IntegerField(blank=True, null=True)
-    no_of_daughter = models.IntegerField(blank=True, null=True)
-    is_verified = models.BooleanField(
+    son_count = models.IntegerField(blank=True, null=True)
+    daughter_count = models.IntegerField(blank=True, null=True)
+    isVerified = models.BooleanField(
         "Verified", default=False
     )
     character_certificate = models.ForeignKey(
@@ -150,22 +150,22 @@ class PersonalEmpInfo(AbstractTime):
     )
 
     def __str__(self):
-        return self.employee.user.email
+        return self.emp_id.user_id.email
 
 
 class AccountEmpInfo(AbstractTime):
-    employee = models.OneToOneField(PrimaryEmpInfo, on_delete=models.PROTECT, related_name="accountempinfo_primempinfo")
+    emp_id = models.OneToOneField(PrimaryEmpInfo, on_delete=models.PROTECT, related_name="accountempinfo_primempinfo")
     bank_name = models.CharField(max_length=500, null=True, blank=True)
     aadhar_no = models.CharField(max_length=12,validators=[MinLengthValidator(10)], unique=True)
     pan_no = models.CharField(max_length=10, unique=True, validators=[MinLengthValidator(10)])
-    account_number = models.CharField(max_length=25, unique=True, null=True, blank=True)
+    bank_account_no = models.CharField(max_length=25, unique=True, null=True, blank=True)
     uan_no = models.CharField(max_length=12, unique=True, validators=[MinLengthValidator(12)], null=True, blank=True)
     pf_no = models.CharField(max_length=30, unique=True, null=True, blank=True)
-    ifsc_code = models.CharField(
+    bank_ifsc_code = models.CharField(
         max_length=11, validators=[MinLengthValidator(11)], null=True, blank=True
     )
     esic_no = models.CharField(max_length=17, unique=True, validators=[MinLengthValidator(17)])
-    is_verified = models.BooleanField(
+    isVerified = models.BooleanField(
         "Verified", default=False
     )
 
@@ -178,8 +178,11 @@ class AddressEmpInfo(BaseAddress):
     address_proof = models.ForeignKey(
         UploadedFile, on_delete=models.CASCADE, related_name="addressempinfo_uploadfile"
     )
-    is_verified = models.BooleanField(
+    isVerified = models.BooleanField(
         "Verified", default=False
+    )
+    is_both_address_same = models.BooleanField(
+        "Is Both Address Same", default=False
     )
 
     def __str__(self):

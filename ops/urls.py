@@ -22,7 +22,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('master/', include('mferp.mastertableconfig.urls')),
     path('user/', include('mferp.auth.user.urls')),
-    # path('employee/', include('employee.profile.urls')),
+    path('employee/', include('employee.profile.urls')),
     # path('hr/', include('hr.hrconfig.urls')),
     path('dropsdown/', include('mferp.dropsdown.urls')),
     path('address/', include('mferp.address.urls')),
