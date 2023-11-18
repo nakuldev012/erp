@@ -1,7 +1,7 @@
 from django.db import models
 from mferp.common.validators import phone_validator
 from mferp.address.models import BaseAddress
-from mferp.upload.models import UploadedFile
+
 
 
 class AbstractTime(models.Model):
@@ -24,6 +24,7 @@ class MasterConfig(AbstractTime):
     def __str__(self):
         return self.label
 
+from mferp.upload.models import UploadedFile
 
 class Organization(AbstractTime):
     """

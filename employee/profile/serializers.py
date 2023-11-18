@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from mferp.auth.user.models import Account
-from .models import BasicEmpInfo, PersonalEmpInfo
+from .models import BasicEmpInfo, PersonalEmpInfo, AccountEmpInfo, AddressEmpInfo
 
 
 # class MasterConfigSerializer( serializers.ModelSerializer,):
@@ -52,4 +52,17 @@ class BasicEmpSerializer(serializers.ModelSerializer):
 class PersonalEmpSerializer(serializers.ModelSerializer):
     class Meta:
         model = PersonalEmpInfo
+        fields = "__all__"
+
+
+class AccountEmpSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AccountEmpInfo
+        fields = "__all__"
+
+
+
+class AddressEmpSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AddressEmpInfo
         fields = "__all__"

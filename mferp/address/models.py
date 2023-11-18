@@ -40,7 +40,7 @@ class City(models.Model):
 
 class BaseAddress(models.Model):
 	type = models.CharField(choices=ADDRESS_TYPE, max_length=250,
-        default="permanent",)
+        default="permanent")
 	address = models.TextField()
 	landmark = models.CharField(max_length=400, null=True, blank=True)
 	city = models.ForeignKey(City, on_delete=models.CASCADE, )

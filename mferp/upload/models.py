@@ -1,10 +1,12 @@
 import io
 import os
+from posixpath import splitext
 import ssl
 import uuid
 from urllib.request import urlretrieve
 from django.forms import ValidationError
 from datetime import datetime
+
 from mferp.common.constant import TZ
 
 import requests
@@ -12,7 +14,7 @@ from django.core.files import File
 from django.db import models
 from PIL import Image
 # from mferp.mastertableconfig.models import AbstractTime
-# from mferp.auth.user.models import Account
+from mferp.auth.user.models import Account
 from mferp.common.constant import MAX_FILE_SIZE
 from mferp.common.errors import ForbiddenErrors
 
@@ -61,13 +63,13 @@ class UploadedFile(models.Model):
     width = models.PositiveIntegerField(blank=True, null=True)
     sub_dir = models.CharField(max_length=100, null=True, blank=True, default="")
     ext = models.CharField(max_length=100, blank=True, null=True)
-    # created_by = models.ForeignKey(
-    #     Account,
-    #     on_delete=models.SET_NULL,
-    #     related_name="uploaded_files",
-    #     null=True,
-    #     blank=True,
-    # )
+    created_by = models.ForeignKey(
+        Account,
+        on_delete=models.SET_NULL,
+        related_name="uploaded_files",
+        null=True,
+        blank=True,
+    )
     thumbnail = models.FileField(
         upload_to=user_directory_path, max_length=500, null=True, blank=True
     )
@@ -89,13 +91,15 @@ class UploadedFile(models.Model):
             except Exception as e:
                 # Handle exceptions if the file is not a valid image or there are other issues
                 pass
+        _, ext = splitext(self.upload.name)
+        self.ext = ext
 
         super().save(*args, **kwargs)
 
   
 
-    def __str__(self):
-        return str(self.upload)
+    # def __str__(self):
+    #     return str(self.upload)
 
     # @staticmethod
     # def resize(img, var):
