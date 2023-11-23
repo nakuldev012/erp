@@ -67,8 +67,8 @@ class PrimaryEmpInfo(AbstractTime):
     )
     isVerified = models.BooleanField("Verified", default=False)
 
-    # def __str__(self):
-    #     return self.user_id.email
+    def __str__(self):
+        return self.user_id.email
 
 
 class BasicEmpInfo(AbstractTime):

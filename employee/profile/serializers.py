@@ -1,6 +1,8 @@
 from rest_framework import serializers
+from hr.hrconfig.models import HrConfig
+from mferp.mastertableconfig.models import Organization
 from mferp.auth.user.models import Account
-from .models import BasicEmpInfo, PersonalEmpInfo, AccountEmpInfo, AddressEmpInfo
+from .models import BasicEmpInfo, PersonalEmpInfo, AccountEmpInfo, AddressEmpInfo, PrimaryEmpInfo
 
 
 # class MasterConfigSerializer( serializers.ModelSerializer,):
@@ -66,3 +68,26 @@ class AddressEmpSerializer(serializers.ModelSerializer):
     class Meta:
         model = AddressEmpInfo
         fields = "__all__"
+
+
+class PrimaryEmpInfoSerializer(serializers.ModelSerializer):
+    user_id = serializers.PrimaryKeyRelatedField(queryset=Account.objects.all())
+    parent_org = serializers.PrimaryKeyRelatedField(queryset=Organization.objects.all())
+    child_org = serializers.PrimaryKeyRelatedField(queryset=Organization.objects.all(),many=True, allow_null=True )
+    type_of_employment = serializers.PrimaryKeyRelatedField(queryset=HrConfig.objects.all())
+    category_of_employee = serializers.PrimaryKeyRelatedField(queryset=HrConfig.objects.all())
+    probation_end_date= serializers.DateTimeField(allow_null=True,required=False)
+    designation = serializers.PrimaryKeyRelatedField(queryset=HrConfig.objects.all())
+    cadre = serializers.PrimaryKeyRelatedField(queryset=HrConfig.objects.all())
+    ladder = serializers.PrimaryKeyRelatedField(queryset=HrConfig.objects.all())
+    shift = serializers.PrimaryKeyRelatedField(queryset=HrConfig.objects.all())
+    isVerified = serializers.BooleanField(default=False) 
+    
+    class Meta:
+        model = PrimaryEmpInfo
+        fields = "__all__"
+
+    def child_representation(self, instance):
+        data = super().to_representation(instance)
+        data['child_org'] = [org.id for org in instance.child_org.all()]
+        return data

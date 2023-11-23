@@ -11,6 +11,7 @@ from .serializers import (
     PersonalEmpSerializer,
     AccountEmpSerializer,
     AddressEmpSerializer,
+    PrimaryEmpInfoSerializer,
 )
 from mferp.mastertableconfig.models import MasterConfig
 from rest_framework import generics, mixins
@@ -64,6 +65,128 @@ class EmployeeTypeUserAPIView(APIView):
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
+
+
+class PrimaryEmpInfoView(generics.GenericAPIView):
+    queryset = PrimaryEmpInfo.objects.all()
+    serializer_class = PrimaryEmpInfoSerializer
+    
+    def post(self, request):
+            # import ipdb;
+            # ipdb.set_trace()
+            try:
+                account_id = request.data.get('user_id')  
+                account_instance = Account.objects.get(id=account_id)
+                request.data['user_id'] = account_instance.id
+                serializer=PrimaryEmpInfoSerializer(data=request.data)
+                if not serializer.is_valid(raise_exception=False):
+                    err = ""
+                    for field, error in serializer.errors.items():
+                        err += "{}: {} ".format(field, ",".join(error))
+                    raise ClientErrors(err)
+
+                emp = serializer.save()
+                primary_emp_info_id = emp.id
+                return Response(
+                    {
+                        "emp_id":primary_emp_info_id,
+                        "message": "Primary information for the employee has been saved",
+                        "success": True,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            except UserErrors as error:
+                return Response(
+                    {
+                        "message": error.message,
+                        "success": False,
+                    },
+                    status=error.response_code,
+                )
+            except Exception as error:
+                return Response(
+                {
+                    "message": "Something Went Wrong",
+                    "success": False,
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+    def get(self, request,*args, **kwargs):
+        # import ipdb;
+        # ipdb.set_trace()
+        user_id = request.query_params.get('user_id')
+        
+        if user_id:
+            try:
+                emp = PrimaryEmpInfo.objects.get(user_id_id=user_id)
+                serializer = PrimaryEmpInfoSerializer(emp)
+                return Response(
+                {
+                "data": serializer.data,
+                "success": True,
+            },
+            status=status.HTTP_200_OK,
+        )
+            except PrimaryEmpInfo.DoesNotExist:
+                return Response(
+                {
+                "message": "Primary information for given user not found",
+                "success": False,
+            },
+            status=status.HTTP_404_NOT_FOUND,
+        )
+        else:
+            return Response(
+                    {
+                    "message": "User id not provided",
+                    "success": False,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+    
+    def put(self, request, pk=None, *args, **kwargs):
+        id=pk
+        if id is not None:
+            try:
+                emp = PrimaryEmpInfo.objects.get(id=id)
+            except PrimaryEmpInfo.DoesNotExist:
+                return Response(
+                {
+                "message": "Primary information for given user not found",
+                "success": False,
+            },
+            status=status.HTTP_404_NOT_FOUND,
+            )
+            serializer = PrimaryEmpInfoSerializer(emp, data=request.data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response(
+                    {
+                        "message": "Primary information for the given user has been updated",
+                        "success": True,
+                    },
+                    status=status.HTTP_200_OK,
+                )
+            else:
+                return Response(
+                    {
+                        "message": "Invalid data provided",
+                        "errors": serializer.errors,
+                        "success": False,
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
+        else:
+            return Response(
+                    {
+                    "message": "Employee id is not valid",
+                    "success": False,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
 
 
 class BasicEmployeeAPIView(APIView):

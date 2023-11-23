@@ -2,13 +2,16 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 
+# from mferp.auth.employee.mixins import group_required
+
 from mferp.address.models import Country, State, City
 from .models import MasterConfig, OrgAddress, Organization, Test
 from mferp.upload.models import UploadedFile
 from .serializers import (
     MasterConfigSerializer,
     OrganizationSerializer,
-    OrgAddressSerializer,TestSerializer
+    OrgAddressSerializer,
+    TestSerializer,
 )
 from rest_framework import generics, mixins
 from mferp.common.errors import ClientErrors, DatabaseErrors, UserErrors
@@ -56,7 +59,7 @@ class CreateCategoryOrSubcategoryView(
     #             {"message": "Something Went Wrong", "success": False},
     #             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
     #         )
-
+    # @group_required('master_config')
     def post(self, request):
         try:
             data = request.data
@@ -388,6 +391,7 @@ class OrganizationView(
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+
 class TestView(
     generics.GenericAPIView,
     mixins.ListModelMixin,
@@ -427,8 +431,8 @@ class TestView(
             #     raise ClientErrors("All Fields are required")
             image = data["image"]
             name = data["name"]
-            print(name,image)
-            obj = UploadedFile.objects.create(upload=image) 
+            print(name, image)
+            obj = UploadedFile.objects.create(upload=image)
             obj2 = Test.objects.create(name=name, cover_image=obj)
             # if serializer.is_valid():
             #     post = serializer.save()
@@ -455,4 +459,3 @@ class TestView(
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-        
