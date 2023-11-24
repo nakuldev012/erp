@@ -392,36 +392,13 @@ class OrganizationView(
             )
 
 
-class TestView(
+class TypeOfEmployeeView(
     generics.GenericAPIView,
     mixins.ListModelMixin,
 ):
     serializer_class = TestSerializer
-    # permission_classes = [IsAuthenticated]
-    queryset = UploadedFile.objects.all()
 
-    # group_required('hr_configuration')
-    # @group_required('hr_configuration')
-    # def get(self, request, *args, **kwargs):
-    #     try:
-    #         if not "pk" in kwargs:
-    #             return self.list(request)
-    #         post = get_object_or_404(Employee, pk=kwargs["pk"])
-    #         return Response(
-    #             {
-    #                 "data": EmployeeSerializer(post).data,
-    #                 "success": True,
-    #             },
-    #             status=status.HTTP_200_OK,
-    #         )
-    #     except Exception as error:
-    #         return Response(
-    #             {
-    #                 "message": "Something Went Wrong",
-    #                 "success": False,
-    #             },
-    #             status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-    #         )
+
 
     def post(self, request):
         try:
