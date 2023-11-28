@@ -70,41 +70,41 @@ class EmployeeTypeUserAPIView(APIView):
 class PrimaryEmpInfoView(generics.GenericAPIView):
     queryset = PrimaryEmpInfo.objects.all()
     serializer_class = PrimaryEmpInfoSerializer
-    
-    def post(self, request):
-            # import ipdb;
-            # ipdb.set_trace()
-            try:
-                account_id = request.data.get('user_id')  
-                account_instance = Account.objects.get(id=account_id)
-                request.data['user_id'] = account_instance.id
-                serializer=PrimaryEmpInfoSerializer(data=request.data)
-                if not serializer.is_valid(raise_exception=False):
-                    err = ""
-                    for field, error in serializer.errors.items():
-                        err += "{}: {} ".format(field, ",".join(error))
-                    raise ClientErrors(err)
 
-                emp = serializer.save()
-                primary_emp_info_id = emp.id
-                return Response(
-                    {
-                        "emp_id":primary_emp_info_id,
-                        "message": "Primary information for the employee has been saved",
-                        "success": True,
-                    },
-                    status=status.HTTP_200_OK,
-                )
-            except UserErrors as error:
-                return Response(
-                    {
-                        "message": error.message,
-                        "success": False,
-                    },
-                    status=error.response_code,
-                )
-            except Exception as error:
-                return Response(
+    def post(self, request):
+        # import ipdb;
+        # ipdb.set_trace()
+        try:
+            account_id = request.data.get("user_id")
+            account_instance = Account.objects.get(id=account_id)
+            request.data["user_id"] = account_instance.id
+            serializer = PrimaryEmpInfoSerializer(data=request.data)
+            if not serializer.is_valid(raise_exception=False):
+                err = ""
+                for field, error in serializer.errors.items():
+                    err += "{}: {} ".format(field, ",".join(error))
+                raise ClientErrors(err)
+
+            emp = serializer.save()
+            primary_emp_info_id = emp.id
+            return Response(
+                {
+                    "emp_id": primary_emp_info_id,
+                    "message": "Primary information for the employee has been saved",
+                    "success": True,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except UserErrors as error:
+            return Response(
+                {
+                    "message": error.message,
+                    "success": False,
+                },
+                status=error.response_code,
+            )
+        except Exception as error:
+            return Response(
                 {
                     "message": "Something Went Wrong",
                     "success": False,
@@ -112,53 +112,52 @@ class PrimaryEmpInfoView(generics.GenericAPIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-
-    def get(self, request,*args, **kwargs):
+    def get(self, request, *args, **kwargs):
         # import ipdb;
         # ipdb.set_trace()
-        user_id = request.query_params.get('user_id')
-        
+        user_id = request.query_params.get("user_id")
+
         if user_id:
             try:
                 emp = PrimaryEmpInfo.objects.get(user_id_id=user_id)
                 serializer = PrimaryEmpInfoSerializer(emp)
                 return Response(
-                {
-                "data": serializer.data,
-                "success": True,
-            },
-            status=status.HTTP_200_OK,
-        )
+                    {
+                        "data": serializer.data,
+                        "success": True,
+                    },
+                    status=status.HTTP_200_OK,
+                )
             except PrimaryEmpInfo.DoesNotExist:
                 return Response(
-                {
-                "message": "Primary information for given user not found",
-                "success": False,
-            },
-            status=status.HTTP_404_NOT_FOUND,
-        )
+                    {
+                        "message": "Primary information for given user not found",
+                        "success": False,
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
         else:
             return Response(
-                    {
+                {
                     "message": "User id not provided",
                     "success": False,
                 },
                 status=status.HTTP_400_BAD_REQUEST,
             )
-    
+
     def put(self, request, pk=None, *args, **kwargs):
-        id=pk
+        id = pk
         if id is not None:
             try:
                 emp = PrimaryEmpInfo.objects.get(id=id)
             except PrimaryEmpInfo.DoesNotExist:
                 return Response(
-                {
-                "message": "Primary information for given user not found",
-                "success": False,
-            },
-            status=status.HTTP_404_NOT_FOUND,
-            )
+                    {
+                        "message": "Primary information for given user not found",
+                        "success": False,
+                    },
+                    status=status.HTTP_404_NOT_FOUND,
+                )
             serializer = PrimaryEmpInfoSerializer(emp, data=request.data)
             if serializer.is_valid():
                 serializer.save()
@@ -180,7 +179,7 @@ class PrimaryEmpInfoView(generics.GenericAPIView):
                 )
         else:
             return Response(
-                    {
+                {
                     "message": "Employee id is not valid",
                     "success": False,
                 },
@@ -188,29 +187,57 @@ class PrimaryEmpInfoView(generics.GenericAPIView):
             )
 
 
-
 class BasicEmployeeAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        emp_id = request.query_params.get("emp_id")
-        if not emp_id:
-            raise ClientErrors("query parameter 'emp_id' is required")
-        obj_emp = PrimaryEmpInfo.objects.get(id=emp_id)
-
-        queryset = BasicEmpInfo.objects.filter(emp_id=obj_emp)
-
-        return Response(
-            {
-                "data": BasicEmpSerializer(queryset, many=True).data,
-                "success": True,
-            },
-            status=status.HTTP_200_OK,
-        )
+        try:
+            emp_id = request.query_params.get("emp_id")
+            if not emp_id:
+                raise ClientErrors("query parameter 'emp_id' is required")
+            obj_emp = PrimaryEmpInfo.objects.filter(id=emp_id).last()
+            if not obj_emp:
+                raise ClientErrors(
+                    message="Primary information for given user not found",
+                    response_code=404,
+                )
+            obj = BasicEmpInfo.objects.filter(emp_id=obj_emp).last()
+            if not obj:
+                raise ClientErrors(
+                    message="Basic information for given employee not found",
+                    response_code=404,
+                )
+            return Response(
+                {
+                    "data": BasicEmpSerializer(obj).data,
+                    "success": True,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except UserErrors as error:
+            return Response(
+                {
+                    "message": error.message,
+                    "success": False,
+                },
+                status=error.response_code,
+            )
+        except Exception as error:
+            return Response(
+                {
+                    "message": "Something Went Wrong",
+                    "success": False,
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     def post(self, request):
         try:
+            # import ipdb;
+            # ipdb.set_trace()
             data = request.data
+            # emp_id = data.get("emp_id")
+            # isVerified = data.get("isVerified")
             serializer = BasicEmpSerializer(data=data)
             if not serializer.is_valid(raise_exception=False):
                 err = " ".join(
@@ -287,20 +314,46 @@ class PersonalEmployeeAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, *args, **kwargs):
-        emp_id = request.query_params.get("emp_id")
-        if not emp_id:
-            raise ClientErrors("query parameter 'emp_id' is required")
-        obj_emp = PrimaryEmpInfo.objects.get(id=emp_id)
+        try:
+            emp_id = request.query_params.get("emp_id")
+            if not emp_id:
+                raise ClientErrors("query parameter 'emp_id' is required")
+            obj_emp = PrimaryEmpInfo.objects.filter(id=emp_id).last()
+            if not obj_emp:
+                raise ClientErrors(
+                    message="Primary information for given user not found",
+                    response_code=404,
+                )
 
-        queryset = PersonalEmpInfo.objects.filter(emp_id=obj_emp)
-
-        return Response(
-            {
-                "data": PersonalEmpSerializer(queryset, many=True).data,
-                "success": True,
-            },
-            status=status.HTTP_200_OK,
-        )
+            obj_personal = PersonalEmpInfo.objects.filter(emp_id=obj_emp).last()
+            if not obj_personal:
+                raise ClientErrors(
+                    message="Personal Employee information for given employee not found",
+                    response_code=404,
+                )
+            return Response(
+                {
+                    "data": PersonalEmpSerializer(obj_personal).data,
+                    "success": True,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except UserErrors as error:
+            return Response(
+                {
+                    "message": error.message,
+                    "success": False,
+                },
+                status=error.response_code,
+            )
+        # except Exception as error:
+        #     return Response(
+        #         {
+        #             "message": "Something Went Wrong",
+        #             "success": False,
+        #         },
+        #         status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        #     )
 
     def post(self, request):
         try:
@@ -456,13 +509,23 @@ class AccountEmployeeAPIView(APIView):
         emp_id = request.query_params.get("emp_id")
         if not emp_id:
             raise ClientErrors("query parameter 'emp_id' is required")
-        obj_emp = PrimaryEmpInfo.objects.get(id=emp_id)
+        obj_emp = PrimaryEmpInfo.objects.filter(id=emp_id).last()
+        if not obj_emp:
+            raise ClientErrors(
+                message="Primary information for given user not found",
+                response_code=404,
+            )
+        obj = AccountEmpInfo.objects.filter(emp_id=obj_emp).last()
 
-        queryset = AccountEmpInfo.objects.filter(emp_id=obj_emp)
+        if not obj:
+            raise ClientErrors(
+                message="Account information for given employee not found",
+                response_code=404,
+            )
 
         return Response(
             {
-                "data": AccountEmpSerializer(queryset, many=True).data,
+                "data": AccountEmpSerializer(obj).data,
                 "success": True,
             },
             status=status.HTTP_200_OK,
@@ -556,13 +619,77 @@ class AddressEmployeeAPIView(APIView):
         emp_id = request.query_params.get("emp_id")
         if not emp_id:
             raise ClientErrors("query parameter 'emp_id' is required")
-        obj_emp = PrimaryEmpInfo.objects.get(id=emp_id)
-
+        obj_emp = PrimaryEmpInfo.objects.filter(id=emp_id).last()
+        if not obj_emp:
+            raise ClientErrors(
+                message="Primary information for given user not found",
+                response_code=404,
+            )
+        
         queryset = AddressEmpInfo.objects.filter(emp=obj_emp)
-
+        if not queryset.exists():
+            return Response(
+                {
+                    "message": "Adress information for given employee not found",
+                    "success": False,
+                },
+                status=status.HTTP_404_NOT_FOUND,
+            )
+        
+        serialized_data = AddressEmpSerializer(queryset, many=True).data
+        res = {}
+        i=0
+        for item in serialized_data:
+            if i==0:
+                address_type = "permanent"
+                address_proof_instance = UploadedFile.objects.get(
+                        id=item["address_proof"]
+                    )
+                upload_url = str(address_proof_instance.upload)
+                state_id = City.objects.get(id=item["city"]).state.id
+                country_id = State.objects.get(id=state_id).country.id
+                res_item = {
+                    f"{address_type}_id": item["id"],
+                    f"{address_type}_type": item["type"],
+                    f"{address_type}_address": item["address"],
+                    f"{address_type}_landmark": item["landmark"],
+                    f"{address_type}_pin_code": item["zip"],
+                    "isVerified": item["isVerified"],
+                    "is_both_address_same": item["is_both_address_same"],
+                    f"{address_type}_city": item["city"],
+                    f"{address_type}_state": state_id,
+                    f"{address_type}_country": country_id,
+                    "emp": item["emp"],
+                    f"{address_type}_address_proof": upload_url,
+                }
+                res.update(res_item)
+                i+=1
+            elif i==1:
+                address_type = "correspondence"
+                address_proof_instance = UploadedFile.objects.get(
+                        id=item["address_proof"]
+                    )
+                upload_url = str(address_proof_instance.upload)
+                state_id = City.objects.get(id=item["city"]).state.id
+                country_id = State.objects.get(id=state_id).country.id
+                res_item = {
+                    f"{address_type}_id": item["id"],
+                    f"{address_type}_type": item["type"],
+                    f"{address_type}_address": item["address"],
+                    f"{address_type}_landmark": item["landmark"],
+                    f"{address_type}_pin_code": item["zip"],
+                    "isVerified": item["isVerified"],
+                    "is_both_address_same": item["is_both_address_same"],
+                    f"{address_type}_city": item["city"],
+                    f"{address_type}_state": state_id,
+                    f"{address_type}_country": country_id,
+                    "emp": item["emp"],
+                    f"{address_type}_address_proof": upload_url,
+                }
+                res.update(res_item)
         return Response(
             {
-                "data": AddressEmpSerializer(queryset, many=True).data,
+                "data": res,
                 "success": True,
             },
             status=status.HTTP_200_OK,
@@ -616,6 +743,16 @@ class AddressEmployeeAPIView(APIView):
             correspondence_address_proof_instance = UploadedFile.objects.create(
                 upload=correspondence_address_proof, created_by=created_by
             )
+            if is_both_address_same == "true":
+                is_both_address_same = True
+            else:
+                is_both_address_same = False
+
+            if isVerified == "true":
+                isVerified = True
+            else:
+                isVerified = False
+
             emp_instance = PrimaryEmpInfo.objects.get(id=emp_id)
             AddressEmpInfo.objects.create(
                 address_proof=permanent_address_proof_instance,
@@ -677,23 +814,54 @@ class AddressEmployeeAPIView(APIView):
                 raise ClientErrors(
                     "No address information found for the given employee"
                 )
-
+            created_by = request.user
             # Update the existing address information
             for address_info in queryset:
                 address_type = address_info.type.lower()
                 if f"{address_type}_address_proof" in data:
                     address_proof = data[f"{address_type}_address_proof"]
-                    address_proof_instance = UploadedFile.objects.create(
-                        upload=address_proof, created_by=request.user
-                    )
-                    address_info.address_proof = address_proof_instance
-
-                address_info.isVerified = data.get(
-                    "isVerified", address_info.isVerified
-                )
-                address_info.is_both_address_same = data.get(
-                    "is_both_address_same", address_info.is_both_address_same
-                )
+                    if not isinstance(address_proof, str):
+                        address_proof_instance = address_info.address_proof
+                        address_proof_instance.upload = address_proof
+                        address_proof_instance.created_by = created_by
+                        address_proof_instance.save()
+                        # address_proof_id = address_proof_instance.id
+                        # mutable_data["profile_pic"] = profile_pic_id
+                    # else:
+                    #     address_proof_instance = instance.address_proof
+                    #     profile_pic_id = address_proof_instance.id
+                    #     mutable_data["profile_pic"] = profile_pic_id
+                    # address_proof_instance = UploadedFile.objects.create(
+                    #     upload=address_proof, created_by=request.user
+                    # )
+                    # address_info.address_proof = address_proof_instance
+                
+                isVerified = data.get("isVerified")
+                if isVerified:
+                    if isVerified == "true":
+                        isVerified = True
+                    else:
+                        isVerified = False
+                    address_info.isVerified = isVerified
+                else:
+                    address_info.isVerified = address_info.isVerified
+                
+                     # address_info.address_proof = address_proof_instance
+                is_both_address_same = data.get("is_both_address_same")
+                if is_both_address_same:
+                    if is_both_address_same == "true":
+                        is_both_address_same = True
+                    else:
+                        is_both_address_same = False
+                    address_info.is_both_address_same = is_both_address_same
+                else :
+                    address_info.is_both_address_same = address_info.is_both_address_same
+                # address_info.isVerified = bool(data.get(
+                #     "isVerified", address_info.isVerified
+                # ))
+                # address_info.is_both_address_same = bool(data.get(
+                #     "is_both_address_same", address_info.is_both_address_same
+                # ))
                 address_info.address = data.get(
                     f"{address_type}_address", address_info.address
                 )
@@ -733,4 +901,44 @@ class AddressEmployeeAPIView(APIView):
                     "success": False,
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+
+class AccountEmpAutofilledInfoView(APIView):
+    serializer_class = AccountSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        try:
+            res = {}
+            emp_id = request.query_params.get("emp_id")
+            if not emp_id:
+                raise ClientErrors("query parameter 'emp_id' is required")
+            primary_emp_exists = PrimaryEmpInfo.objects.filter(id=emp_id).exists()
+            if primary_emp_exists:
+                primary_emp_obj = PrimaryEmpInfo.objects.get(id=emp_id)
+                account_obj = primary_emp_obj.user_id
+                res["first_name"] = account_obj.first_name
+                res["last_name"] = account_obj.last_name
+                res["phone_number"] = account_obj.phone_number
+                res["email"] = account_obj.email
+            basic_emp_exists = BasicEmpInfo.objects.filter(emp_id__id=emp_id).exists()
+            if basic_emp_exists:
+                basic_emp_obj = BasicEmpInfo.objects.get(emp_id__id=emp_id)
+                res["dob"] = basic_emp_obj.dob
+
+            return Response(
+                {
+                    "data": res,
+                    "success": True,
+                },
+                status=status.HTTP_200_OK,
+            )
+        except UserErrors as error:
+            return Response(
+                {
+                    "message": error.message,
+                    "success": False,
+                },
+                status=error.response_code,
             )

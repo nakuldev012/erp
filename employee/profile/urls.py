@@ -1,5 +1,13 @@
 from django.urls import path
-from .views import EmployeeTypeUserAPIView, BasicEmployeeAPIView, PersonalEmployeeAPIView, AccountEmployeeAPIView, AddressEmployeeAPIView, PrimaryEmpInfoView
+from .views import (
+    EmployeeTypeUserAPIView,
+    BasicEmployeeAPIView,
+    PersonalEmployeeAPIView,
+    AccountEmployeeAPIView,
+    AddressEmployeeAPIView,
+    PrimaryEmpInfoView,
+    AccountEmpAutofilledInfoView,
+)
 
 urlpatterns = [
     path("v1/get-employee-type-user/", EmployeeTypeUserAPIView.as_view()),
@@ -12,5 +20,6 @@ urlpatterns = [
     path("v1/employee-address-details/", AddressEmployeeAPIView.as_view()),
     path("v1/employee-address-details/<int:pk>/", AddressEmployeeAPIView.as_view()),
     path("v1/primary-employee/", PrimaryEmpInfoView.as_view()),
-    path("v1/primary-employee/<int:pk>/", PrimaryEmpInfoView.as_view()),  
-    ]
+    path("v1/primary-employee/<int:pk>/", PrimaryEmpInfoView.as_view()),
+    path("v1/employee-account-autofilled-info/", AccountEmpAutofilledInfoView.as_view()),
+]

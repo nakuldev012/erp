@@ -166,11 +166,13 @@ class PersonalEmpInfo(AbstractTime):
         UploadedFile,
         on_delete=models.CASCADE,
         related_name="personalempinfo_uploadfile_character_certificate",
+        blank=True, null=True
     )
     medical_certificate = models.ForeignKey(
         UploadedFile,
         on_delete=models.CASCADE,
         related_name="personalempinfo_uploadfile_medical_certificate",
+        blank=True, null=True
     )
 
     def __str__(self):
@@ -205,7 +207,7 @@ class AccountEmpInfo(AbstractTime):
         max_length=11, validators=[MinLengthValidator(11)], null=True, blank=True
     )
     esic_no = models.CharField(
-        max_length=17, unique=True, validators=[MinLengthValidator(17)]
+        max_length=17, null=True, blank=True, unique=True, validators=[MinLengthValidator(17)]
     )
     isVerified = models.BooleanField("Verified", default=False)
 
