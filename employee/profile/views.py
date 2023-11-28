@@ -35,10 +35,12 @@ class EmployeeTypeUserAPIView(APIView):
 
     def get(self, request: HttpRequest) -> Response:
         try:
-            user_type = request.query_params.get("user_type")
-            if not user_type:
-                raise ClientErrors("query parameter 'user_type' is required")
-            obj_user_type = MasterConfig.objects.get(label=user_type)
+            # import ipdb;
+            # ipdb.set_trace()   
+            user_type_id = request.query_params.get("user_type_id")
+            if not user_type_id:
+                raise ClientErrors("query parameter 'user type id' is required")
+            obj_user_type = MasterConfig.objects.get(id=user_type_id)
 
             queryset = Account.objects.filter(user_type=obj_user_type)
 
@@ -65,7 +67,6 @@ class EmployeeTypeUserAPIView(APIView):
                 },
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
-
 
 class PrimaryEmpInfoView(generics.GenericAPIView):
     queryset = PrimaryEmpInfo.objects.all()
