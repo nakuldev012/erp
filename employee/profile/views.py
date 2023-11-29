@@ -234,11 +234,7 @@ class BasicEmployeeAPIView(APIView):
 
     def post(self, request):
         try:
-            # import ipdb;
-            # ipdb.set_trace()
             data = request.data
-            # emp_id = data.get("emp_id")
-            # isVerified = data.get("isVerified")
             serializer = BasicEmpSerializer(data=data)
             if not serializer.is_valid(raise_exception=False):
                 err = " ".join(
@@ -347,41 +343,38 @@ class PersonalEmployeeAPIView(APIView):
                 },
                 status=error.response_code,
             )
-        # except Exception as error:
-        #     return Response(
-        #         {
-        #             "message": "Something Went Wrong",
-        #             "success": False,
-        #         },
-        #         status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        #     )
+        except Exception as error:
+            return Response(
+                {
+                    "message": "Something Went Wrong",
+                    "success": False,
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
     def post(self, request):
         try:
             data = request.data
+            created_by = request.user
             if ("profile_pic") not in request.data:
                 raise ClientErrors("profile_pic field is required")
-            if ("character_certificate") not in request.data:
-                raise ClientErrors("character_certificate field is required")
-            if ("medical_certificate") not in request.data:
-                raise ClientErrors("medical_certificate field is required")
             profile_pic = data.get("profile_pic", "")
-            character_certificate = data.get("character_certificate", "")
-            medical_certificate = data.get("medical_certificate", "")
-            created_by = request.user
-            profile_pic_id = UploadedFile.objects.create(
+            instance = UploadedFile.objects.create(
                 upload=profile_pic, created_by=created_by
-            ).id
-            character_certificate_id = UploadedFile.objects.create(
+            )
+            data["profile_pic"] = instance.id
+            character_certificate = data.get("character_certificate", "")
+            if character_certificate:      
+                character_certificate_id = UploadedFile.objects.create(
                 upload=character_certificate, created_by=created_by
-            ).id
-            medical_certificate_id = UploadedFile.objects.create(
+                ).id
+                data["character_certificate"] = character_certificate_id
+            medical_certificate = data.get("medical_certificate", "")
+            if medical_certificate:      
+                medical_certificate_id = UploadedFile.objects.create(
                 upload=medical_certificate, created_by=created_by
-            ).id
-            data["profile_pic"] = profile_pic_id
-            data["character_certificate"] = character_certificate_id
-            data["medical_certificate"] = medical_certificate_id
-
+                ).id
+                data["medical_certificate"] = medical_certificate_id
             serializer = PersonalEmpSerializer(data=data)
             if not serializer.is_valid(raise_exception=False):
                 err = " ".join(
@@ -442,7 +435,7 @@ class PersonalEmployeeAPIView(APIView):
                 profile_pic_id = profile_pic_instance.id
                 mutable_data["profile_pic"] = profile_pic_id
 
-            if not isinstance(profile_pic, str):
+            if not isinstance(character_certificate, str):
                 character_certificate_instance = instance.character_certificate
                 character_certificate_instance.upload = character_certificate
                 character_certificate_instance.created_by = created_by
@@ -452,10 +445,14 @@ class PersonalEmployeeAPIView(APIView):
 
             else:
                 character_certificate_instance = instance.character_certificate
-                character_certificate_id = character_certificate_instance.id
-                mutable_data["character_certificate"] = character_certificate_id
+                if character_certificate_instance:
+                    character_certificate_id = character_certificate_instance.id
+                    mutable_data["character_certificate"] = character_certificate_id
+                else:
+                    mutable_data["character_certificate"] = None
 
-            if not isinstance(profile_pic, str):
+
+            if not isinstance(medical_certificate, str):
                 medical_certificate_instance = instance.medical_certificate
                 medical_certificate_instance.upload = medical_certificate
                 medical_certificate_instance.created_by = created_by
@@ -464,8 +461,12 @@ class PersonalEmployeeAPIView(APIView):
                 mutable_data["medical_certificate"] = medical_certificate_id
             else:
                 medical_certificate_instance = instance.medical_certificate
-                medical_certificate_id = medical_certificate_instance.id
-                mutable_data["medical_certificate"] = medical_certificate_id
+                if medical_certificate_instance:
+                    medical_certificate_id = medical_certificate_instance.id
+                    mutable_data["medical_certificate"] = medical_certificate_id
+                else:
+                    mutable_data["medical_certificate"] = None
+
 
             serializer = PersonalEmpSerializer(instance, data=mutable_data)
             if not serializer.is_valid(raise_exception=False):

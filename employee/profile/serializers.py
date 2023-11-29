@@ -67,20 +67,45 @@ class BasicEmpSerializer(serializers.ModelSerializer):
 
 
 class PersonalEmpSerializer(serializers.ModelSerializer):
-    character_certificate = serializers.CharField(
+    character_certificate_url = serializers.CharField(
         source="character_certificate.upload", read_only=True
     )
-    medical_certificate = serializers.CharField(
+    medical_certificate_url = serializers.CharField(
         source="medical_certificate.upload", read_only=True
     )
-    profile_pic = serializers.CharField(source="profile_pic.upload", read_only=True)
+    profile_pic_url = serializers.CharField(source="profile_pic.upload", read_only=True)
 
     class Meta:
         model = PersonalEmpInfo
-        fields = "__all__"
+        fields = (
+            "emp_id",
+            "father_name",
+            "mother_name",
+            "profile_pic",
+            "profile_pic_url",
+            "blood_group",
+            "gender",
+            "nationality",
+            "caste",
+            "marital_status",
+            "religion",
+            "alternative_email",
+            "office_email",
+            "alternative_mobile_number",
+            "emergency_contact_name",
+            "emergency_contact_mobile_number",
+            "relationship",
+            "son_count",
+            "daughter_count",
+            "isVerified",
+            "character_certificate",
+            "character_certificate_url",
+            "medical_certificate",
+            "medical_certificate_url",
+            "created_at",
+            "updated_at",
+        )
 
-
-    
 
 class AccountEmpSerializer(serializers.ModelSerializer):
     class Meta:
