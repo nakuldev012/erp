@@ -16,8 +16,6 @@ class PrimaryEmpInfo(AbstractTime):
         Organization,
         on_delete=models.CASCADE,
         related_name="primempinfo_org",
-        null=True,
-        blank=True,
     )
     child_org = models.ManyToManyField(
         Organization, related_name="primempinfo_child_org", null=True, blank=True
@@ -26,44 +24,37 @@ class PrimaryEmpInfo(AbstractTime):
         HrConfig,
         on_delete=models.CASCADE,
         related_name="primempinfo_hrconfig_emp_type",
-        null=True,
-        blank=True,
     )
     probation_end_date = models.DateTimeField(null=True, blank=True)
     category_of_employee = models.ForeignKey(
         HrConfig,
         on_delete=models.CASCADE,
         related_name="primempinfo_hrconfig_emp_category",
-        null=True,
-        blank=True,
+       
     )
     designation = models.ForeignKey(
         HrConfig,
         on_delete=models.CASCADE,
         related_name="primempinfo_hrconfig_designation",
-        null=True,
-        blank=True,
+       
     )
     cadre = models.ForeignKey(
         HrConfig,
         on_delete=models.CASCADE,
         related_name="primempinfo_hrconfig_cadre",
-        null=True,
-        blank=True,
+       
     )
     ladder = models.ForeignKey(
         HrConfig,
         on_delete=models.CASCADE,
         related_name="primempinfo_hrconfig_ladder",
-        null=True,
-        blank=True,
+      
     )
     shift = models.ForeignKey(
         HrConfig,
         on_delete=models.CASCADE,
         related_name="primempinfo_hrconfig_shift",
-        null=True,
-        blank=True,
+        
     )
     isVerified = models.BooleanField("Verified", default=False)
 

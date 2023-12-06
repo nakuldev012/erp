@@ -77,34 +77,8 @@ class PersonalEmpSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = PersonalEmpInfo
-        fields = (
-            "emp_id",
-            "father_name",
-            "mother_name",
-            "profile_pic",
-            "profile_pic_url",
-            "blood_group",
-            "gender",
-            "nationality",
-            "caste",
-            "marital_status",
-            "religion",
-            "alternative_email",
-            "office_email",
-            "alternative_mobile_number",
-            "emergency_contact_name",
-            "emergency_contact_mobile_number",
-            "relationship",
-            "son_count",
-            "daughter_count",
-            "isVerified",
-            "character_certificate",
-            "character_certificate_url",
-            "medical_certificate",
-            "medical_certificate_url",
-            "created_at",
-            "updated_at",
-        )
+        fields = "__all__"
+        read_only_fields = ("character_certificate_url", "medical_certificate_url", "profile_pic_url","created_at", "updated_at")
 
 
 class AccountEmpSerializer(serializers.ModelSerializer):
@@ -120,29 +94,29 @@ class AddressEmpSerializer(serializers.ModelSerializer):
 
 
 class PrimaryEmpInfoSerializer(serializers.ModelSerializer):
-    user_id = serializers.PrimaryKeyRelatedField(queryset=Account.objects.all())
-    parent_org = serializers.PrimaryKeyRelatedField(queryset=Organization.objects.all())
-    child_org = serializers.PrimaryKeyRelatedField(
-        queryset=Organization.objects.all(), many=True, allow_null=True
+    is_data_exist = serializers.BooleanField(
+         default=True, read_only=True
     )
-    type_of_employment = serializers.PrimaryKeyRelatedField(
-        queryset=HrConfig.objects.all()
-    )
-    category_of_employee = serializers.PrimaryKeyRelatedField(
-        queryset=HrConfig.objects.all()
-    )
-    probation_end_date = serializers.DateTimeField(allow_null=True, required=False)
-    designation = serializers.PrimaryKeyRelatedField(queryset=HrConfig.objects.all())
-    cadre = serializers.PrimaryKeyRelatedField(queryset=HrConfig.objects.all())
-    ladder = serializers.PrimaryKeyRelatedField(queryset=HrConfig.objects.all())
-    shift = serializers.PrimaryKeyRelatedField(queryset=HrConfig.objects.all())
-    isVerified = serializers.BooleanField(default=False)
-
+    
     class Meta:
         model = PrimaryEmpInfo
         fields = "__all__"
+        read_only_fields = ("is_data_exist",)
+
+    def to_internal_value(self, data):
+        
+        # Handle 'None' value for 'child_org'
+        if 'child_org' in data and data['child_org'] is None:
+            data['child_org'] = []
+
+        return super().to_internal_value(data)
+    
 
     def child_representation(self, instance):
         data = super().to_representation(instance)
         data["child_org"] = [org.id for org in instance.child_org.all()]
         return data
+    
+    # def create(self, validated_data):
+    #     validated_data["is_data_exist"] = True
+    #     return super().create(validated_data)

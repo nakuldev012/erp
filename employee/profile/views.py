@@ -68,7 +68,7 @@ class EmployeeTypeUserAPIView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-class PrimaryEmpInfoView(generics.GenericAPIView):
+class PrimaryEmpInfoView(APIView):
     queryset = PrimaryEmpInfo.objects.all()
     serializer_class = PrimaryEmpInfoSerializer
 
@@ -114,13 +114,13 @@ class PrimaryEmpInfoView(generics.GenericAPIView):
             )
 
     def get(self, request, *args, **kwargs):
-        # import ipdb;
-        # ipdb.set_trace()
         user_id = request.query_params.get("user_id")
 
         if user_id:
-            try:
-                emp = PrimaryEmpInfo.objects.get(user_id_id=user_id)
+            # try:
+            emp = PrimaryEmpInfo.objects.filter(user_id_id=user_id).last()
+            if emp:
+
                 serializer = PrimaryEmpInfoSerializer(emp)
                 return Response(
                     {
@@ -129,14 +129,23 @@ class PrimaryEmpInfoView(generics.GenericAPIView):
                     },
                     status=status.HTTP_200_OK,
                 )
-            except PrimaryEmpInfo.DoesNotExist:
-                return Response(
+            seen = {}
+            seen["is_data_exist"] = False
+            return Response(
                     {
-                        "message": "Primary information for given user not found",
-                        "success": False,
+                        "data": seen,
+                        "success": True,
                     },
-                    status=status.HTTP_404_NOT_FOUND,
+                    status=status.HTTP_200_OK,
                 )
+            # except PrimaryEmpInfo.DoesNotExist:
+            #     return Response(
+            #         {
+            #             "message": "Primary information for given user not found",
+            #             "success": False,
+            #         },
+            #         status=status.HTTP_404_NOT_FOUND,
+            #     )
         else:
             return Response(
                 {
@@ -160,6 +169,11 @@ class PrimaryEmpInfoView(generics.GenericAPIView):
                     status=status.HTTP_404_NOT_FOUND,
                 )
             serializer = PrimaryEmpInfoSerializer(emp, data=request.data)
+            if not serializer.is_valid(raise_exception=False):
+                err = ""
+                for field, error in serializer.errors.items():
+                    err += "{}: {} ".format(field, ",".join(error))
+                raise ClientErrors(err)
             if serializer.is_valid():
                 serializer.save()
                 return Response(

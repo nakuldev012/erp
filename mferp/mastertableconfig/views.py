@@ -32,7 +32,7 @@ class CreateCategoryOrSubcategoryView(
             self.partial_update(request, pk, partial=True)
             return Response(
                 {
-                    "message": "data is updatated ",
+                    "message": "data is updated ",
                     "success": True,
                 },
                 status=status.HTTP_200_OK,
@@ -260,8 +260,6 @@ class OrganizationView(
                 if ("org_nature_" + str(assign)) not in request.data:
                     raise ClientErrors("All field required")
                 if ("region_" + str(assign)) not in request.data:
-                    raise ClientErrors("All field required")
-                if ("affiliated_university_" + str(assign)) not in request.data:
                     raise ClientErrors("All field required")
                 if ("establishment_date_" + str(assign)) not in request.data:
                     raise ClientErrors("All field required")
